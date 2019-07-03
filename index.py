@@ -24,7 +24,7 @@ def aaa(b1,b2,b3,b4,b5,b6,b7,b8):
     return 0
 
 dokan_operations = dokan_structure.DOKAN_OPERATIONS()
-dokan_operations.ZwCreateFile = dokan_structure.DOKAN_OPERATIONS._fields_[0][1](aaa)
+dokan_operations.ZwCreateFile = dokan_structure.DOKAN_OPERATIONS.class_dict["ZwCreateFile"](aaa)
 # dokan_operations.Cleanup = WINFUNCTYPE(wintypes.LPCWSTR, dokan_structure.DOKAN_FILE_INFO)(aaa)
 # dokan_operations.CloseFile = WINFUNCTYPE(wintypes.LPCWSTR, dokan_structure.DOKAN_FILE_INFO)(aaa)
 
