@@ -30,7 +30,7 @@ class DOKAN_FILE_INFO(Structure):
 
 class DOKAN_OPERATIONS(Structure):
     _fields_ = [
-        ('ZwCreateFile', WINFUNCTYPE(wintypes.LPCWSTR, wintypes.LPCWSTR, wintypes.LPCWSTR, wintypes.ULONG, wintypes.ULONG, wintypes.ULONG, wintypes.ULONG, DOKAN_FILE_INFO)),
+        ('ZwCreateFile', WINFUNCTYPE(wintypes.ULONG, wintypes.LPCWSTR, wintypes.LPCWSTR, wintypes.ULONG, wintypes.ULONG, wintypes.ULONG, wintypes.ULONG, wintypes.ULONG, DOKAN_FILE_INFO)),
         ('Cleanup', WINFUNCTYPE(wintypes.LPCWSTR, DOKAN_FILE_INFO)),
         ('CloseFile', WINFUNCTYPE(wintypes.LPCWSTR, DOKAN_FILE_INFO)),
         ('ReadFile', WINFUNCTYPE(wintypes.LPCWSTR, wintypes.LPVOID, wintypes.DWORD, wintypes.LPDWORD, c_longlong, DOKAN_FILE_INFO)),
