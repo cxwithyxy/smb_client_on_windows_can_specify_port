@@ -19,14 +19,18 @@ dokan_options.MountPoint = wintypes.LPCWSTR("K:\\")
 dokan_options.AllocationUnitSize = 4 * 1024
 dokan_options.SectorSize = 10 * 1024 * 1024
 
-def aaa(b1,b2,b3,b4,b5,b6,b7,b8):
-    print("asdasdad")
+def ZwCreateFile_handle(b1,b2,b3,b4,b5,b6,b7,b8):
+    print("ZwCreateFile")
+    return 0
+
+def Cleanup_and_CloseFile(b1, b2):
+    print("Cleanup_and_CloseFile")
     return 0
 
 dokan_operations = dokan_structure.DOKAN_OPERATIONS()
-dokan_operations.ZwCreateFile = dokan_structure.DOKAN_OPERATIONS.class_dict["ZwCreateFile"](aaa)
-# dokan_operations.Cleanup = WINFUNCTYPE(wintypes.LPCWSTR, dokan_structure.DOKAN_FILE_INFO)(aaa)
-# dokan_operations.CloseFile = WINFUNCTYPE(wintypes.LPCWSTR, dokan_structure.DOKAN_FILE_INFO)(aaa)
+dokan_operations.ZwCreateFile = dokan_structure.DOKAN_OPERATIONS.class_dict["ZwCreateFile"](ZwCreateFile_handle)
+dokan_operations.Cleanup = dokan_structure.DOKAN_OPERATIONS.class_dict["Cleanup"](Cleanup_and_CloseFile)
+dokan_operations.CloseFile = dokan_structure.DOKAN_OPERATIONS.class_dict["CloseFile"](Cleanup_and_CloseFile)
 
 print("r u n")
 
