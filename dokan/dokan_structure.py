@@ -1,16 +1,31 @@
 from ctypes import *
+import ctypes.wintypes as wintypes
 
 class DOKAN_OPTIONS(Structure):
     _fields_ = [
-        ('Version', c_ushort),
-        ('ThreadCount', c_ushort),
-        ('Options', c_ulong),
+        ('Version', wintypes.USHORT),
+        ('ThreadCount', wintypes.USHORT),
+        ('Options', wintypes.ULONG),
         ('GlobalContext', c_ulonglong),
-        ('MountPoint', c_wchar_p),
-        ('UNCName', c_wchar_p),
-        ('Timeout', c_ulong),
-        ('AllocationUnitSize', c_ulong),
-        ('SectorSize', c_ulong),
+        ('MountPoint', wintypes.LPCWSTR),
+        ('UNCName', wintypes.LPCWSTR),
+        ('Timeout', wintypes.USHORT),
+        ('AllocationUnitSize', wintypes.USHORT),
+        ('SectorSize', wintypes.USHORT),
+    ]
+
+class DOKAN_FILE_INFO(Structure):
+    _fields_ = [
+        ('Context', c_ulonglong),
+        ('DokanContext', c_ulonglong),
+        ('DokanOptions', DOKAN_OPTIONS),
+        ('ProcessId', wintypes.ULONG),
+        ('IsDirectory', wintypes.WCHAR),
+        ('DeleteOnClose', wintypes.WCHAR),
+        ('PagingIo', wintypes.WCHAR),
+        ('SynchronousIo', wintypes.WCHAR),
+        ('Nocache', wintypes.WCHAR),
+        ('WriteToEndOfFile', wintypes.WCHAR),
     ]
 
 class DOKAN_OPERATIONS(Structure):
