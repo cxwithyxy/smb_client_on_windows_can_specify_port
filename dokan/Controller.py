@@ -1,5 +1,6 @@
 from ctypes import *
 from PythonSingleton.Singleton import Singleton as SLT
+import ctypes.wintypes as wintypes
 import dokan.dokan_structure as dokan_structure
 
 class Controller(SLT):
@@ -39,3 +40,8 @@ class Controller(SLT):
         if not self.dokan_operations:
             raise BaseException("dokan_operations have not set , pls call set_operations")
         self.dokan_dll.DokanMain(self.dokan_options, self.dokan_operations)
+
+    def dokan_stop(self):
+        """停止dokan
+        """
+        self.dokan_dll.DokanRemoveMountPoint(self.dokan_options.MountPoint, wintypes.BOOL(True))
