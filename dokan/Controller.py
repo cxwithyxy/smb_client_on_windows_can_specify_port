@@ -39,7 +39,7 @@ class Controller(SLT):
             raise BaseException("dokan_options have not set, pls call set_options")
         if not self.dokan_operations:
             raise BaseException("dokan_operations have not set , pls call set_operations")
-        self.dokan_dll.DokanMain(self.dokan_options, self.dokan_operations)
+        self.dokan_dll.DokanMain(pointer(self.dokan_options), pointer(self.dokan_operations))
 
     def dokan_stop(self):
         """停止dokan

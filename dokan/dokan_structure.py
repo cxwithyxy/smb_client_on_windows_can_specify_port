@@ -55,8 +55,8 @@ class Builder(SLT.Singleton):
             'SetAllocationSize': "WINFUNCTYPE(wintypes.ULONG, c_wchar_p)",
             'LockFile': "WINFUNCTYPE(wintypes.ULONG, c_wchar_p)",
             'UnlockFile': "WINFUNCTYPE(wintypes.ULONG, c_wchar_p)",
-            'GetDiskFreeSpace': "WINFUNCTYPE(wintypes.ULONG, c_wchar_p)",
-            'GetVolumeInformation': "WINFUNCTYPE(wintypes.ULONG, c_wchar_p)",
+            'GetDiskFreeSpace': "WINFUNCTYPE(wintypes.ULONG, POINTER(c_ulonglong), POINTER(c_ulonglong), POINTER(c_ulonglong), POINTER(DOKAN_FILE_INFO))",
+            'GetVolumeInformation': "WINFUNCTYPE(wintypes.ULONG, POINTER(wintypes.LPWSTR), POINTER(wintypes.DWORD), POINTER(wintypes.LPDWORD),POINTER(wintypes.LPDWORD),POINTER(wintypes.LPDWORD),POINTER(wintypes.LPWSTR), POINTER(wintypes.DWORD),POINTER(DOKAN_FILE_INFO))",
             'Mounted': "WINFUNCTYPE(wintypes.ULONG, c_wchar_p)",
             'Unmounted': "WINFUNCTYPE(wintypes.ULONG, c_wchar_p)",
             'GetFileSecurity': "WINFUNCTYPE(wintypes.ULONG, c_wchar_p)",
@@ -78,7 +78,11 @@ class Builder(SLT.Singleton):
             now_class.class_dict = now_dict
             fields_for_set = []
             for field_name in now_dict:
-                now_dict[field_name] = eval(now_dict[field_name])
+                try:
+                    now_dict[field_name] = eval(now_dict[field_name])
+                except BaseException as e:
+                    print(e)
+                    print("ERROR===== " + field_name + "=====")
                 fields_for_set.append((field_name, now_dict[field_name]))
             now_class._fields_ = fields_for_set
 

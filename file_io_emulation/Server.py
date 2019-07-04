@@ -1,5 +1,7 @@
 from dokan.Controller import Controller as dokan_controller
 from PythonSingleton.Singleton import Singleton as SLT
+from ctypes import *
+import ctypes.wintypes as wintypes
 import _thread
 
 class Server(SLT):
@@ -8,8 +10,10 @@ class Server(SLT):
         dokan_controller().set_options("k")
         dokan_controller().set_operations({
             "ZwCreateFile": self.ZwCreateFile_handle,
-            "Cleanup":self.Cleanup_and_CloseFile,
-            "CloseFile":self.Cleanup_and_CloseFile,
+            "Cleanup": self.Cleanup_and_CloseFile_handle,
+            "CloseFile": self.Cleanup_and_CloseFile_handle,
+            "GetDiskFreeSpace": self.GetDiskFreeSpace_handle,
+            "GetVolumeInformation": self.GetVolumeInformation_handle
         })
 
     def start(self):
@@ -23,9 +27,20 @@ class Server(SLT):
         dokan_controller().dokan_stop()
 
     def ZwCreateFile_handle(self, b1,b2,b3,b4,b5,b6,b7,b8):
-        print("ZwCreateFile")
         return 0
     
-    def Cleanup_and_CloseFile(self, b1, b2):
-        print("Cleanup_and_CloseFile")
+    def Cleanup_and_CloseFile_handle(self, b1, b2):
+        return 0
+
+    def GetDiskFreeSpace_handle(self, *argus):
+        # print(b1.contents)
+        argus[0][0] = c_ulonglong(10 * 1024 * 1024)
+        argus[2][0] = c_ulonglong(10 * 1024 * 1024)
+        argus[1][0] = c_ulonglong(20 * 1024 * 1024)
+        # print(b3.contents)
+        # b2.contents = c_ulonglong(10 * 1024 * 1024)
+        # b2 = byref(c_ulonglong(10 * 1024 * 1024))
+        return 0
+    def GetVolumeInformation_handle(self, *argus):
+        argus[0][0] = wintypes.LPWSTR("aaaaaaaaaa")
         return 0

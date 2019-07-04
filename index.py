@@ -6,5 +6,5 @@ while(True):
     a = input("==>\n")
     if(a == "stop"):
         FS_server().stop()
-    if(a == "exit"):
+    if(a == "q"):
         break
