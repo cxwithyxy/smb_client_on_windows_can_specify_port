@@ -3,14 +3,9 @@ import fs.zipfs as zipfs
 import fs.mountfs as mountfs
 from ctypes import *
 import ctypes.wintypes as wintypes
-import dokan.dokan_structure as dokan_structure
+from dokan.Controller import Controller as dokan_controller
 
-dokan = windll.LoadLibrary("C:\Windows\System32\dokan1.dll")
 # print(a.DokanUnmount)
-dokan_options = dokan_structure.builder().build_DOKAN_OPTIONS()
-dokan_operations = dokan_structure.builder().build_DOKAN_OPERATIONS()
-
-
 class sadasd():
     def ZwCreateFile_handle(self, b1,b2,b3,b4,b5,b6,b7,b8):
         print("ZwCreateFile")
@@ -20,13 +15,16 @@ class sadasd():
         print("Cleanup_and_CloseFile")
         return 0
 
-print(dokan_operations.class_dict)
+print("r u n")
 
+dokan_controller().set_options("k")
+dokan_controller().set_operations({
+    "ZwCreateFile": sadasd().ZwCreateFile_handle,
+    "Cleanup":sadasd().Cleanup_and_CloseFile,
+    "CloseFile":sadasd().Cleanup_and_CloseFile,
+})
 
-# print("r u n")
-
-# a = dokan.DokanMain(dokan_options, dokan_operations)
-
+dokan_controller().dokan_start()
 # # print(a)
 
 # # dokan.DokanUnmount(c_wchar("K:/"))
