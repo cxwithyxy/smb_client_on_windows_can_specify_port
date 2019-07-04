@@ -37,7 +37,7 @@ class Builder(SLT.Singleton):
             'WriteToEndOfFile': "wintypes.WCHAR",
         },
         "DOKAN_OPERATIONS": {
-            'ZwCreateFile': "WINFUNCTYPE(wintypes.ULONG, wintypes.LPCWSTR, wintypes.LPCWSTR, wintypes.ULONG, wintypes.ULONG, wintypes.ULONG, wintypes.ULONG, wintypes.ULONG, DOKAN_FILE_INFO)",
+            'ZwCreateFile': "WINFUNCTYPE(wintypes.ULONG, wintypes.LPCWSTR, wintypes.LPCWSTR, wintypes.ULONG, wintypes.ULONG, wintypes.ULONG, wintypes.ULONG, wintypes.ULONG, POINTER(DOKAN_FILE_INFO))",
             'Cleanup': "WINFUNCTYPE(wintypes.ULONG, wintypes.LPCWSTR, DOKAN_FILE_INFO)",
             'CloseFile': "WINFUNCTYPE(wintypes.ULONG, wintypes.LPCWSTR, DOKAN_FILE_INFO)",
             'ReadFile': "WINFUNCTYPE(wintypes.LPCWSTR, wintypes.LPVOID, wintypes.DWORD, wintypes.LPDWORD, c_longlong, POINTER(DOKAN_FILE_INFO))",

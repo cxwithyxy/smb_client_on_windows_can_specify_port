@@ -28,10 +28,11 @@ class Server(SLT):
         """
         dokan_controller().dokan_stop()
 
-    def ZwCreateFile_handle(self, b1,b2,b3,b4,b5,b6,b7,b8):
+    def ZwCreateFile_handle(self, *argus):
+        print(argus[0])
         return 0
     
-    def Cleanup_and_CloseFile_handle(self, b1, b2):
+    def Cleanup_and_CloseFile_handle(self, *argus):
         return 0
 
     def GetDiskFreeSpace_handle(self, *argus):
