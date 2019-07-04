@@ -1,0 +1,3 @@
+[submodule "PythonSingleton"]
+	path = PythonSingleton
+	url = https://github.com/cxwithyxy/PythonSingleton.git
