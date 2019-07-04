@@ -1,8 +1,8 @@
 from ctypes import *
-from PythonSingleton.Singleton import Singleton as STL
+from PythonSingleton.Singleton import Singleton as SLT
 import dokan.dokan_structure as dokan_structure
 
-class Controller(STL):
+class Controller(SLT):
     
     dokan_dll = None
     dokan_options = None
@@ -11,6 +11,7 @@ class Controller(STL):
     
     def __Singleton_Init__(self):
         self.dokan_dll = windll.LoadLibrary("C:\Windows\System32\dokan1.dll")
+        print("load dll end")
 
     def set_operations(self, callback_dict = {}):
         """设置dokan回调操作

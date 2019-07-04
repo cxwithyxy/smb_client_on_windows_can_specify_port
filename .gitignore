@@ -2,3 +2,4 @@ venv/
 .vscode/settings.json
 .vscode/
 dokan/__pycache__/
+file_io_emulation/__pycache__/
