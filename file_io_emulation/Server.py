@@ -13,7 +13,9 @@ class Server(SLT):
             "Cleanup": self.Cleanup_and_CloseFile_handle,
             "CloseFile": self.Cleanup_and_CloseFile_handle,
             "GetDiskFreeSpace": self.GetDiskFreeSpace_handle,
-            "GetVolumeInformation": self.GetVolumeInformation_handle
+            "GetVolumeInformation": self.GetVolumeInformation_handle,
+            "ReadFile": self.ReadFile_handle,
+            "WriteFile":self.WriteFile_handle,
         })
 
     def start(self):
@@ -44,4 +46,10 @@ class Server(SLT):
     def GetVolumeInformation_handle(self, *argus):
         # argus[0][0] = wintypes.LPWSTR("aaaa")
         # argus[0].contents = pointer(wintypes.LPWSTR("aaaa"))
+        return 0
+
+    def ReadFile_handle(self, *argus):
+        return 0
+
+    def WriteFile_handle(self, *argus):
         return 0
