@@ -97,8 +97,13 @@ class builder(SLT.Singleton):
         # dokan_options.SectorSize = 10 * 1024 * 1024
         return dokan_options
     
-    def build_DOKAN_OPERATIONS(self):
+    def build_DOKAN_OPERATIONS(self, callback_disk = {}):
         """构建DOKAN_OPERATIONS结构体
+
+        Args:
+            callback_disk: 回调函数字典，对应在dokan.h中DOKAN_OPERATIONS结构体的函数及其名称
         """
         dokan_operations = DOKAN_OPERATIONS()
+        for i in callback_disk:
+            setattr(dokan_operations, i, dokan_operations.class_dict[i](callback_disk[i]))
         return dokan_operations
