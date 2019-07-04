@@ -42,5 +42,6 @@ class Server(SLT):
         # b2 = byref(c_ulonglong(10 * 1024 * 1024))
         return 0
     def GetVolumeInformation_handle(self, *argus):
-        argus[0][0] = wintypes.LPWSTR("aaaaaaaaaa")
+        # argus[0][0] = wintypes.LPWSTR("aaaa")
+        # argus[0].contents = pointer(wintypes.LPWSTR("aaaa"))
         return 0
