@@ -23,12 +23,15 @@ class Server(SLT):
     
     def FindFilesWithPattern_handle(self, *argus):
         print("FindFilesWithPattern_handle: " + argus[0])
-        find_data = dokan_structure.WIN32_FIND_DATAW()
-        argus[2](find_data, argus[3])
+        find_data = wintypes.WIN32_FIND_DATAW()
+        find_data.cFileName = ("aaaa.txt")
+        argus[2](pointer(find_data), argus[3])
+        find_data = wintypes.WIN32_FIND_DATAW()
+        find_data.cFileName = ("bbbbb.txt")
+        argus[2](pointer(find_data), argus[3])
         return 0
 
     def FindFiles_handle(self, *argus):
-        print("FindFiles_handle: " + argus[0])
         return 0
 
     def ZwCreateFile_handle(self, *argus):

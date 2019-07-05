@@ -42,24 +42,9 @@ class Builder(SLT.Singleton):
             'Nocache': "wintypes.WCHAR",
             'WriteToEndOfFile': "wintypes.WCHAR",
         },
-        "FILETIME": {
-            "dwLowDateTime": "wintypes.DWORD",
-            "dwHighDateTime": "wintypes.DWORD"
-        },
-        "WIN32_FIND_DATAW": {
-            "dwFileAttributes": "wintypes.DWORD",
-            "ftCreationTime": "FILETIME",
-            "ftLastAccessTime": "FILETIME",
-            "ftLastWriteTime": "FILETIME",
-            "nFileSizeHigh": "wintypes.DWORD",
-            "nFileSizeLow": "wintypes.DWORD",
-            "dwReserved0": "wintypes.DWORD",
-            "dwReserved1": "wintypes.DWORD",
-            "cFileName": "wintypes.WCHAR",
-            "cAlternateFileName": "wintypes.WCHAR",
-        },
+        
         "other_func": {
-            "callback_FillFindData": "WINFUNCTYPE(c_int, WIN32_FIND_DATAW, POINTER(DOKAN_FILE_INFO))"
+            "callback_FillFindData": "WINFUNCTYPE(c_int, wintypes.PWIN32_FIND_DATAW, POINTER(DOKAN_FILE_INFO))"
         },
         "DOKAN_OPERATIONS": {
             'ZwCreateFile': "WINFUNCTYPE(wintypes.ULONG, wintypes.LPCWSTR, wintypes.LPCWSTR, wintypes.ULONG, wintypes.ULONG, wintypes.ULONG, wintypes.ULONG, wintypes.ULONG, POINTER(DOKAN_FILE_INFO))",
