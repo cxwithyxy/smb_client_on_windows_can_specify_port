@@ -26,7 +26,7 @@ class Server(SLT):
         })
     
     def FindFilesWithPattern_handle(self, *argus):
-        print("FindFilesWithPattern_handle: " + argus[0])
+        print("FindFilesWithPattern_handle")
         find_data = wintypes.WIN32_FIND_DATAW()
         find_data.cFileName = ("aaaa.txt")
         find_data.cAlternateFileName = "txt"
@@ -37,12 +37,15 @@ class Server(SLT):
         return 0
 
     def FindFiles_handle(self, *argus):
+        print("FindFiles_handle")
         return 0
 
     def ZwCreateFile_handle(self, *argus):
+        print("ZwCreateFile_handle")
         return 0
     
     def Cleanup_and_CloseFile_handle(self, *argus):
+        print("Cleanup_and_CloseFile_handle")
         return 0
 
     def GetDiskFreeSpace_handle(self, *argus):
@@ -59,9 +62,11 @@ class Server(SLT):
         return 0
 
     def ReadFile_handle(self, *argus):
+        print("ReadFile_handle")
         return 0
 
     def WriteFile_handle(self, *argus):
+        print("WriteFile_handle")
         return 0
 
     def start(self):
