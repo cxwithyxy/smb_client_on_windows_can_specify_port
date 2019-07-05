@@ -11,7 +11,11 @@ class DOKAN_OPERATIONS(Structure):
     pass
 class FILETIME(Structure):
     pass
-class WIN32_FIND_DATAW(Structure):
+class UNICODE_STRING(Structure):
+    pass
+class DOKAN_ACCESS_STATE(Structure):
+    pass
+class DOKAN_IO_SECURITY_CONTEXT(Structure):
     pass
 class other_func(Structure):
     pass
@@ -33,7 +37,7 @@ class Builder(SLT.Singleton):
         "DOKAN_FILE_INFO": {
             'Context': "c_ulonglong",
             'DokanContext': "c_ulonglong",
-            'DokanOptions': "DOKAN_OPTIONS",
+            'DokanOptions': "POINTER(DOKAN_OPTIONS)",
             'ProcessId': "wintypes.ULONG",
             'IsDirectory': "wintypes.WCHAR",
             'DeleteOnClose': "wintypes.WCHAR",
@@ -42,12 +46,33 @@ class Builder(SLT.Singleton):
             'Nocache': "wintypes.WCHAR",
             'WriteToEndOfFile': "wintypes.WCHAR",
         },
-        
+        "UNICODE_STRING": {
+            "Length": wintypes.USHORT,
+            "MaximumLength": wintypes.USHORT,
+            "Buffer": c_wchar_p,
+        },
+        "DOKAN_ACCESS_STATE": {
+            "SecurityEvaluated": "wintypes.BOOLEAN",
+            "GenerateAudit": "wintypes.BOOLEAN",
+            "GenerateOnClose": "wintypes.BOOLEAN",
+            "AuditPrivileges": "wintypes.BOOLEAN",
+            "Flags": "wintypes.ULONG",
+            "RemainingDesiredAccess": "wintypes.DWORD",
+            "PreviouslyGrantedAccess": "wintypes.DWORD",
+            "OriginalDesiredAccess": "wintypes.DWORD",
+            "SecurityDescriptor": "c_void_p",
+            "ObjectName": "UNICODE_STRING",
+            "ObjectType": "UNICODE_STRING",
+        },
+        "DOKAN_IO_SECURITY_CONTEXT": {
+            "AccessState": "DOKAN_ACCESS_STATE",
+            "DesiredAccess": "wintypes.DWORD",
+        },
         "other_func": {
             "callback_FillFindData": "WINFUNCTYPE(c_int, wintypes.PWIN32_FIND_DATAW, POINTER(DOKAN_FILE_INFO))"
         },
         "DOKAN_OPERATIONS": {
-            'ZwCreateFile': "WINFUNCTYPE(wintypes.ULONG, wintypes.LPCWSTR, wintypes.LPCWSTR, wintypes.ULONG, wintypes.ULONG, wintypes.ULONG, wintypes.ULONG, wintypes.ULONG, POINTER(DOKAN_FILE_INFO))",
+            'ZwCreateFile': "WINFUNCTYPE(wintypes.ULONG, wintypes.LPCWSTR,POINTER(DOKAN_IO_SECURITY_CONTEXT), wintypes.DWORD, wintypes.ULONG, wintypes.ULONG, wintypes.ULONG, wintypes.ULONG, POINTER(DOKAN_FILE_INFO))",
             'Cleanup': "WINFUNCTYPE(wintypes.ULONG, wintypes.LPCWSTR, DOKAN_FILE_INFO)",
             'CloseFile': "WINFUNCTYPE(wintypes.ULONG, wintypes.LPCWSTR, DOKAN_FILE_INFO)",
             'ReadFile': "WINFUNCTYPE(wintypes.ULONG, wintypes.LPCWSTR, wintypes.LPVOID, wintypes.DWORD, wintypes.LPDWORD, c_longlong, POINTER(DOKAN_FILE_INFO))",
