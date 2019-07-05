@@ -49,9 +49,12 @@ class Server(SLT):
         # b2.contents = c_ulonglong(10 * 1024 * 1024)
         # b2 = byref(c_ulonglong(10 * 1024 * 1024))
         return 0
+
     def GetVolumeInformation_handle(self, *argus):
-        # argus[0][0] = wintypes.LPWSTR("aaaa")
-        # argus[0].contents = pointer(wintypes.LPWSTR("aaaa"))
+        count = 0
+        for i in argus:
+            print("" + str(count) + ": " + str(type(i)))
+            count += 1
         return 0
 
     def ReadFile_handle(self, *argus):
