@@ -51,10 +51,15 @@ class Server(SLT):
         return 0
 
     def GetVolumeInformation_handle(self, *argus):
-        count = 0
-        for i in argus:
-            print("" + str(count) + ": " + str(type(i)))
-            count += 1
+        # addr = id(argus[0])
+        sss = wintypes.LPWSTR("我虚拟出来的硬盘")
+        memmove(argus[0], sss, len(sss.value) * 2)
+        # print(type(sss))
+        # print(sss)
+        # count = 0
+        # for i in argus:
+        #     print("" + str(count) + ": " + str(type(i)))
+        #     count += 1
         return 0
 
     def ReadFile_handle(self, *argus):

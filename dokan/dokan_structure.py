@@ -47,9 +47,9 @@ class Builder(SLT.Singleton):
             'WriteToEndOfFile': "wintypes.WCHAR",
         },
         "UNICODE_STRING": {
-            "Length": wintypes.USHORT,
-            "MaximumLength": wintypes.USHORT,
-            "Buffer": c_wchar_p,
+            "Length": "wintypes.USHORT",
+            "MaximumLength": "wintypes.USHORT",
+            "Buffer": "c_wchar_p",
         },
         "DOKAN_ACCESS_STATE": {
             "SecurityEvaluated": "wintypes.BOOLEAN",
@@ -91,7 +91,7 @@ class Builder(SLT.Singleton):
             'LockFile': "WINFUNCTYPE(wintypes.ULONG, c_wchar_p)",
             'UnlockFile': "WINFUNCTYPE(wintypes.ULONG, c_wchar_p)",
             'GetDiskFreeSpace': "WINFUNCTYPE(wintypes.ULONG, POINTER(c_ulonglong), POINTER(c_ulonglong), POINTER(c_ulonglong), POINTER(DOKAN_FILE_INFO))",
-            'GetVolumeInformation': "WINFUNCTYPE(wintypes.ULONG, wintypes.LPWSTR, wintypes.DWORD, wintypes.LPDWORD, wintypes.LPDWORD, wintypes.LPDWORD, wintypes.LPWSTR, wintypes.DWORD, POINTER(DOKAN_FILE_INFO))",
+            'GetVolumeInformation': "WINFUNCTYPE(wintypes.ULONG, POINTER(wintypes.LPWSTR), wintypes.DWORD, wintypes.LPDWORD, wintypes.LPDWORD, wintypes.LPDWORD, wintypes.LPWSTR, wintypes.DWORD, POINTER(DOKAN_FILE_INFO))",
             'Mounted': "WINFUNCTYPE(wintypes.ULONG, c_wchar_p)",
             'Unmounted': "WINFUNCTYPE(wintypes.ULONG, c_wchar_p)",
             'GetFileSecurity': "WINFUNCTYPE(wintypes.ULONG, c_wchar_p)",
