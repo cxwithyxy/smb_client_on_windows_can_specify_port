@@ -9,6 +9,12 @@ class DOKAN_FILE_INFO(Structure):
     pass
 class DOKAN_OPERATIONS(Structure):
     pass
+class FILETIME(Structure):
+    pass
+class WIN32_FIND_DATAW(Structure):
+    pass
+class other_func(Structure):
+    pass
 
 class Builder(SLT.Singleton):
 
@@ -36,16 +42,35 @@ class Builder(SLT.Singleton):
             'Nocache': "wintypes.WCHAR",
             'WriteToEndOfFile': "wintypes.WCHAR",
         },
+        "FILETIME": {
+            "dwLowDateTime": "wintypes.DWORD",
+            "dwHighDateTime": "wintypes.DWORD"
+        },
+        "WIN32_FIND_DATAW": {
+            "dwFileAttributes": "wintypes.DWORD",
+            "ftCreationTime": "FILETIME",
+            "ftLastAccessTime": "FILETIME",
+            "ftLastWriteTime": "FILETIME",
+            "nFileSizeHigh": "wintypes.DWORD",
+            "nFileSizeLow": "wintypes.DWORD",
+            "dwReserved0": "wintypes.DWORD",
+            "dwReserved1": "wintypes.DWORD",
+            "cFileName": "wintypes.WCHAR",
+            "cAlternateFileName": "wintypes.WCHAR",
+        },
+        "other_func": {
+            "callback_FillFindData": "WINFUNCTYPE(c_int, WIN32_FIND_DATAW, POINTER(DOKAN_FILE_INFO))"
+        },
         "DOKAN_OPERATIONS": {
             'ZwCreateFile': "WINFUNCTYPE(wintypes.ULONG, wintypes.LPCWSTR, wintypes.LPCWSTR, wintypes.ULONG, wintypes.ULONG, wintypes.ULONG, wintypes.ULONG, wintypes.ULONG, POINTER(DOKAN_FILE_INFO))",
             'Cleanup': "WINFUNCTYPE(wintypes.ULONG, wintypes.LPCWSTR, DOKAN_FILE_INFO)",
             'CloseFile': "WINFUNCTYPE(wintypes.ULONG, wintypes.LPCWSTR, DOKAN_FILE_INFO)",
-            'ReadFile': "WINFUNCTYPE(wintypes.LPCWSTR, wintypes.LPVOID, wintypes.DWORD, wintypes.LPDWORD, c_longlong, POINTER(DOKAN_FILE_INFO))",
-            'WriteFile': "WINFUNCTYPE(wintypes.LPCWSTR, wintypes.LPVOID, wintypes.DWORD, wintypes.LPDWORD, c_longlong, POINTER(DOKAN_FILE_INFO))",
-            'FlushFileBuffers': "WINFUNCTYPE(wintypes.ULONG, c_wchar_p)",
-            'GetFileInformation': "WINFUNCTYPE(wintypes.ULONG, c_wchar_p)",
-            'FindFiles': "WINFUNCTYPE(wintypes.ULONG, c_wchar_p)",
-            'FindFilesWithPattern': "WINFUNCTYPE(wintypes.ULONG, c_wchar_p)",
+            'ReadFile': "WINFUNCTYPE(wintypes.ULONG, wintypes.LPCWSTR, wintypes.LPVOID, wintypes.DWORD, wintypes.LPDWORD, c_longlong, POINTER(DOKAN_FILE_INFO))",
+            'WriteFile': "WINFUNCTYPE(wintypes.ULONG, wintypes.LPCWSTR, wintypes.LPVOID, wintypes.DWORD, wintypes.LPDWORD, c_longlong, POINTER(DOKAN_FILE_INFO))",
+            'FlushFileBuffers': "WINFUNCTYPE(wintypes.ULONG, wintypes.LPCWSTR, POINTER(DOKAN_FILE_INFO))",
+            'GetFileInformation': "WINFUNCTYPE(wintypes.ULONG, wintypes.LPCWSTR, POINTER(wintypes.LPCWSTR), POINTER(DOKAN_FILE_INFO))",
+            'FindFiles': "WINFUNCTYPE(wintypes.ULONG, wintypes.LPCWSTR, POINTER(wintypes.LPCWSTR), POINTER(DOKAN_FILE_INFO))",
+            'FindFilesWithPattern': "WINFUNCTYPE(wintypes.ULONG, wintypes.LPCWSTR, wintypes.LPCWSTR, other_func.class_dict['callback_FillFindData'], POINTER(DOKAN_FILE_INFO))",
             'SetFileAttributes': "WINFUNCTYPE(wintypes.ULONG, c_wchar_p)",
             'SetFileTime': "WINFUNCTYPE(wintypes.ULONG, c_wchar_p)",
             'DeleteFile': "WINFUNCTYPE(wintypes.ULONG, c_wchar_p)",
