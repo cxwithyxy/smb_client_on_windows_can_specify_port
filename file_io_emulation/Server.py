@@ -7,8 +7,12 @@ import _thread
 
 class Server(SLT):
 
+    files_tree = []
+    volume_name = "我虚拟出来的硬盘"
+    mount_point = "k"
+
     def __Singleton_Init__(self):
-        dokan_controller().set_options("k")
+        dokan_controller().set_options(self.mount_point)
         dokan_controller().set_operations({
             "ZwCreateFile": self.ZwCreateFile_handle,
             "Cleanup": self.Cleanup_and_CloseFile_handle,
@@ -25,6 +29,7 @@ class Server(SLT):
         print("FindFilesWithPattern_handle: " + argus[0])
         find_data = wintypes.WIN32_FIND_DATAW()
         find_data.cFileName = ("aaaa.txt")
+        find_data.cAlternateFileName = "txt"
         argus[2](pointer(find_data), argus[3])
         find_data = wintypes.WIN32_FIND_DATAW()
         find_data.cFileName = ("bbbbb.txt")
@@ -41,25 +46,16 @@ class Server(SLT):
         return 0
 
     def GetDiskFreeSpace_handle(self, *argus):
-        # print(b1.contents)
-        argus[0][0] = c_ulonglong(10 * 1024 * 1024)
-        argus[2][0] = c_ulonglong(10 * 1024 * 1024)
-        argus[1][0] = c_ulonglong(20 * 1024 * 1024)
-        # print(b3.contents)
-        # b2.contents = c_ulonglong(10 * 1024 * 1024)
-        # b2 = byref(c_ulonglong(10 * 1024 * 1024))
+        free = 20 * 1024 * 1024
+        total = 20 * 1024 * 1024
+        argus[0][0] = c_ulonglong(free)
+        argus[1][0] = c_ulonglong(total)
+        argus[2][0] = c_ulonglong(free)
         return 0
 
     def GetVolumeInformation_handle(self, *argus):
-        # addr = id(argus[0])
-        sss = wintypes.LPWSTR("我虚拟出来的硬盘")
+        sss = wintypes.LPWSTR(self.volume_name)
         memmove(argus[0], sss, len(sss.value) * 2)
-        # print(type(sss))
-        # print(sss)
-        # count = 0
-        # for i in argus:
-        #     print("" + str(count) + ": " + str(type(i)))
-        #     count += 1
         return 0
 
     def ReadFile_handle(self, *argus):
