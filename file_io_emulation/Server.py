@@ -15,8 +15,8 @@ class Server(SLT):
         dokan_controller().set_options(self.mount_point)
         dokan_controller().set_operations({
             "ZwCreateFile": self.ZwCreateFile_handle,
-            "Cleanup": self.Cleanup_and_CloseFile_handle,
-            "CloseFile": self.Cleanup_and_CloseFile_handle,
+            "Cleanup": self.Cleanup_handle,
+            "CloseFile": self.CloseFile_handle,
             "GetDiskFreeSpace": self.GetDiskFreeSpace_handle,
             "GetVolumeInformation": self.GetVolumeInformation_handle,
             "ReadFile": self.ReadFile_handle,
@@ -41,11 +41,25 @@ class Server(SLT):
         return 0
 
     def ZwCreateFile_handle(self, *argus):
-        print("ZwCreateFile_handle")
+        # print("ZwCreateFile_handle")
+        if(argus[0] != "\\"):
+            # print(argus[0])
+            # print(argus[1])
+            # print(argus[2])
+            # print(argus[3])
+            # print(argus[4])
+            # print(argus[5])
+            # print(argus[6])
+            print(argus[7].contents.IsDirectory)
+            argus[7].contents.IsDirectory
         return 0
     
-    def Cleanup_and_CloseFile_handle(self, *argus):
-        print("Cleanup_and_CloseFile_handle")
+    def Cleanup_handle(self, *argus):
+        # print("Cleanup_handle")
+        return 0
+
+    def CloseFile_handle(self, *argus):
+        # print("CloseFile_handle")
         return 0
 
     def GetDiskFreeSpace_handle(self, *argus):
