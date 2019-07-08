@@ -5,6 +5,8 @@ import sys
 
 class DOKAN_OPTIONS(Structure):
     pass
+class BY_HANDLE_FILE_INFORMATION(Structure):
+    pass
 class DOKAN_FILE_INFO(Structure):
     pass
 class DOKAN_OPERATIONS(Structure):
@@ -33,6 +35,18 @@ class Builder(SLT.Singleton):
             'Timeout': "wintypes.USHORT",
             'AllocationUnitSize': "wintypes.USHORT",
             'SectorSize': "wintypes.USHORT",
+        },
+        "BY_HANDLE_FILE_INFORMATION": {
+            "dwFileAttributes": "wintypes.DWORD",
+            "ftCreationTime": "wintypes.FILETIME",
+            "ftLastAccessTime": "wintypes.FILETIME",
+            "ftLastWriteTime": "wintypes.FILETIME",
+            "dwVolumeSerialNumber": "wintypes.DWORD",
+            "nFileSizeHigh": "wintypes.DWORD",
+            "nFileSizeLow": "wintypes.DWORD",
+            "nNumberOfLinks": "wintypes.DWORD",
+            "nFileIndexHigh": "wintypes.DWORD",
+            "nFileIndexLow": "wintypes.DWORD",
         },
         "DOKAN_FILE_INFO": {
             'Context': "c_ulonglong",
@@ -75,10 +89,10 @@ class Builder(SLT.Singleton):
             'ZwCreateFile': "WINFUNCTYPE(wintypes.ULONG, wintypes.LPCWSTR,POINTER(DOKAN_IO_SECURITY_CONTEXT), wintypes.DWORD, wintypes.ULONG, wintypes.ULONG, wintypes.ULONG, wintypes.ULONG, POINTER(DOKAN_FILE_INFO))",
             'Cleanup': "WINFUNCTYPE(wintypes.ULONG, wintypes.LPCWSTR, POINTER(DOKAN_FILE_INFO))",
             'CloseFile': "WINFUNCTYPE(wintypes.ULONG, wintypes.LPCWSTR, POINTER(DOKAN_FILE_INFO))",
-            'ReadFile': "WINFUNCTYPE(wintypes.ULONG, wintypes.LPCWSTR, wintypes.LPVOID, wintypes.DWORD, wintypes.LPDWORD, c_longlong, POINTER(DOKAN_FILE_INFO))",
+            'ReadFile': "WINFUNCTYPE(wintypes.ULONG, wintypes.LPCWSTR, POINTER(c_char * 65536), wintypes.DWORD, wintypes.LPDWORD, c_longlong, POINTER(DOKAN_FILE_INFO))",
             'WriteFile': "WINFUNCTYPE(wintypes.ULONG, wintypes.LPCWSTR, wintypes.LPVOID, wintypes.DWORD, wintypes.LPDWORD, c_longlong, POINTER(DOKAN_FILE_INFO))",
             'FlushFileBuffers': "WINFUNCTYPE(wintypes.ULONG, wintypes.LPCWSTR, POINTER(DOKAN_FILE_INFO))",
-            'GetFileInformation': "WINFUNCTYPE(wintypes.ULONG, wintypes.LPCWSTR, POINTER(wintypes.LPCWSTR), POINTER(DOKAN_FILE_INFO))",
+            'GetFileInformation': "WINFUNCTYPE(wintypes.ULONG, wintypes.LPCWSTR, POINTER(BY_HANDLE_FILE_INFORMATION), POINTER(DOKAN_FILE_INFO))",
             'FindFiles': "WINFUNCTYPE(wintypes.ULONG, wintypes.LPCWSTR, POINTER(wintypes.LPCWSTR), POINTER(DOKAN_FILE_INFO))",
             'FindFilesWithPattern': "WINFUNCTYPE(wintypes.ULONG, wintypes.LPCWSTR, wintypes.LPCWSTR, other_func.class_dict['callback_FillFindData'], POINTER(DOKAN_FILE_INFO))",
             'SetFileAttributes': "WINFUNCTYPE(wintypes.ULONG, c_wchar_p)",

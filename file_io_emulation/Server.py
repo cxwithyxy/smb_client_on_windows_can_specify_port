@@ -23,10 +23,16 @@ class Server(SLT):
             "WriteFile": self.WriteFile_handle,
             "FindFiles": self.FindFiles_handle,
             "FindFilesWithPattern": self.FindFilesWithPattern_handle,
+            "GetFileInformation": self.GetFileInformation_handle
         })
     
+    def GetFileInformation_handle(self, *argus):
+        if(argus[0].find("bbbb") != -1):
+            argus[1].contents.dwFileAttributes = 128
+        return 0
+
     def FindFilesWithPattern_handle(self, *argus):
-        print("FindFilesWithPattern_handle")
+        # print("FindFilesWithPattern_handle")
         find_data = wintypes.WIN32_FIND_DATAW()
         find_data.cFileName = ("aaaa.txt")
         find_data.cAlternateFileName = "txt"
@@ -50,8 +56,8 @@ class Server(SLT):
             # print(argus[4])
             # print(argus[5])
             # print(argus[6])
-            print(argus[7].contents.IsDirectory)
-            # argus[7].contents.IsDirectory = 0
+            # print(argus[7].contents.IsDirectory)
+            argus[7].contents.Context = 6727
         return 0
     
     def Cleanup_handle(self, *argus):
@@ -77,6 +83,20 @@ class Server(SLT):
 
     def ReadFile_handle(self, *argus):
         print("ReadFile_handle")
+        print(argus[0])
+        # print(argus[1])
+        # print(argus[2])
+        # print(argus[3])
+        # print(argus[4])
+        # print(type(argus[1]))
+        # print(type(wintypes.LPVOID()))
+        sss = create_string_buffer("aaa".encode("utf8"))
+        # sss = cast(sss, c_char_p)
+        print(type(argus[1].contents))
+        print(len(sss.value))
+        memmove(argus[1].contents, sss, len(sss.value))
+        print(type(argus[3]))
+        argus[3][0] = c_ulong(len(sss.value))
         return 0
 
     def WriteFile_handle(self, *argus):
