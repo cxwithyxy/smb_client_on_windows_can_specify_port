@@ -29,7 +29,10 @@ class Server(SLT):
     def GetFileInformation_handle(self, *argus):
         if(argus[0].find("bbbb") != -1):
             argus[1].contents.dwFileAttributes = 128
-        return 0
+        if(argus[0] == "\\"):
+            argus[1].contents.dwFileAttributes = 16
+            argus[2].contents.IsDirectory = c_ubyte(True)
+        return 0x00000000
 
     def FindFilesWithPattern_handle(self, *argus):
         # print("FindFilesWithPattern_handle")
@@ -43,21 +46,32 @@ class Server(SLT):
         return 0
 
     def FindFiles_handle(self, *argus):
-        print("FindFiles_handle")
+        # print("FindFiles_handle")
         return 0
 
     def ZwCreateFile_handle(self, *argus):
         # print("ZwCreateFile_handle")
         if(argus[0] != "\\"):
-            # print(argus[0])
-            # print(argus[1])
-            # print(argus[2])
-            # print(argus[3])
-            # print(argus[4])
-            # print(argus[5])
-            # print(argus[6])
             # print(argus[7].contents.IsDirectory)
             argus[7].contents.Context = 6727
+            return 0xC0000035
+        # else:
+        #     print("FileName")
+        #     print(argus[0])
+        #     print("SecurityContext")
+        #     print(argus[1])
+        #     print("DesiredAccess")
+        #     print(argus[2])
+        #     print("FileAttributes")
+        #     print(argus[3])
+        #     print("ShareAccess")
+        #     print(argus[4])
+        #     print("CreateDisposition")
+        #     print(argus[5])
+        #     print("CreateOptions")
+        #     print(argus[6])
+        #     print(argus[7].contents.IsDirectory)
+        #     argus[7].contents.IsDirectory = c_ubyte(True)
         return 0
     
     def Cleanup_handle(self, *argus):
@@ -69,6 +83,7 @@ class Server(SLT):
         return 0
 
     def GetDiskFreeSpace_handle(self, *argus):
+        # print("GetDiskFreeSpace_handle")
         free = 20 * 1024 * 1024
         total = 20 * 1024 * 1024
         argus[0][0] = c_ulonglong(free)
@@ -77,6 +92,7 @@ class Server(SLT):
         return 0
 
     def GetVolumeInformation_handle(self, *argus):
+        # print("GetVolumeInformation_handle")
         sss = wintypes.LPWSTR(self.volume_name)
         memmove(argus[0], sss, len(sss.value) * 2)
         return 0
@@ -84,27 +100,22 @@ class Server(SLT):
     bbbbtxt = "阿萨大萨达阿萨大啊aaaaa啊啊啊啊啊阿萨大萨达阿萨大啊aaaaa啊啊啊啊啊阿萨大萨达阿萨大啊aaaaa啊啊啊啊啊阿萨大萨达阿萨大啊aaaaa啊啊啊啊啊阿萨大萨达阿萨大啊aaaaa啊啊啊啊啊阿萨大萨达阿萨大啊aaaaa啊啊啊啊啊阿萨大萨达阿萨大啊aaaaa啊啊啊啊啊阿萨大萨达阿萨大啊aaaaa啊啊啊啊啊阿萨大萨达阿萨大啊aaaaa啊啊啊啊啊阿萨大萨达阿萨大啊aaaaa啊啊啊啊啊阿萨大萨达阿萨大啊aaaaa啊啊啊啊啊阿萨大萨达阿萨大啊aaaaa啊啊啊啊啊阿萨大萨达阿萨大啊aaaaa啊啊啊啊啊阿萨大萨达阿萨大啊aaaaa啊啊啊啊啊阿萨大萨达阿萨大啊aaaaa啊啊啊啊啊阿萨大萨达阿萨大啊aaaaa啊啊啊啊啊阿萨大萨达阿萨大啊aaaaa啊啊啊啊啊阿萨大萨达阿萨大啊aaaaa啊啊啊啊啊阿萨大萨达阿萨大啊aaaaa啊啊啊啊啊阿萨大萨达阿萨大啊aaaaa啊啊啊啊啊阿萨大萨达阿萨大啊aaaaa啊啊啊啊啊阿萨大萨达阿萨大啊aaaaa啊啊啊啊啊阿萨大萨达阿萨大啊aaaaa啊啊啊啊啊阿萨大萨达阿萨大啊aaaaa啊啊啊啊啊阿萨大萨达阿萨大啊aaaaa啊啊啊啊啊阿萨大萨达阿萨大啊aaaaa啊啊啊啊啊阿萨大萨达阿萨大啊aaaaa啊啊啊啊啊阿萨大萨达阿萨大啊aaaaa啊啊啊啊啊阿萨大萨达阿萨大啊aaaaa啊啊啊啊啊阿萨大萨达阿萨大啊aaaaa啊啊啊啊啊阿萨大萨达阿萨大啊aaaaa啊啊啊啊啊阿萨大萨达阿萨大啊aaaaa啊啊啊啊啊阿萨大萨达阿萨大啊aaaaa啊啊啊啊啊阿萨大萨达阿萨大啊aaaaa啊啊啊啊啊阿萨大萨达阿萨大啊aaaaa啊啊啊啊啊阿萨大萨达阿萨大啊aaaaa啊啊啊啊啊阿萨大萨达阿萨大啊aaaaa啊啊啊啊啊阿萨大萨达阿萨大啊aaaaa啊啊啊啊啊阿萨大萨达阿萨大啊aaaaa啊啊啊啊啊阿萨大萨达阿萨大啊aaaaa啊啊啊啊啊阿萨大萨达阿萨大啊aaaaa啊啊啊啊啊阿萨大萨达阿萨大啊aaaaa啊啊啊啊啊阿萨大萨达阿萨大啊aaaaa啊啊啊啊啊阿萨大萨达阿萨大啊aaaaa啊啊啊啊啊阿萨大萨达阿萨大啊aaaaa啊啊啊啊啊阿萨大萨达阿萨大啊aaaaa啊啊啊啊啊阿萨大萨达阿萨大啊aaaaa啊啊啊啊啊阿萨大萨达阿萨大啊aaaaa啊啊啊啊啊".encode("utf-8")
 
     def ReadFile_handle(self, *argus):
-        print("ReadFile_handle")
+        # print("ReadFile_handle")
         file_path = argus[0]
         buffer = argus[1].contents
         buffer_len = argus[2]
         read_len_buffer = argus[3]
         offset = argus[4]
-        # print(argus[1])
-        # print(argus[2])
-        # print(argus[3])
         filesize = len(self.bbbbtxt)
         if(argus[4] >= filesize):
             return 0
-        
-        print("offset: " + str(offset))
         sss = create_string_buffer(self.bbbbtxt[offset:offset + buffer_len])
         memmove(buffer, sss, len(sss.value))
         memmove(read_len_buffer, pointer(c_ulong(len(sss.value))), sizeof(c_ulong))
         return 0
 
     def WriteFile_handle(self, *argus):
-        print("WriteFile_handle")
+        # print("WriteFile_handle")
         return 0
 
     def start(self):
