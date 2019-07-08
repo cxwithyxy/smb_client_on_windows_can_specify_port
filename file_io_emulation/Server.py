@@ -81,22 +81,26 @@ class Server(SLT):
         memmove(argus[0], sss, len(sss.value) * 2)
         return 0
 
+    bbbbtxt = "阿萨大萨达阿萨大啊aaaaa啊啊啊啊啊阿萨大萨达阿萨大啊aaaaa啊啊啊啊啊阿萨大萨达阿萨大啊aaaaa啊啊啊啊啊阿萨大萨达阿萨大啊aaaaa啊啊啊啊啊阿萨大萨达阿萨大啊aaaaa啊啊啊啊啊阿萨大萨达阿萨大啊aaaaa啊啊啊啊啊阿萨大萨达阿萨大啊aaaaa啊啊啊啊啊阿萨大萨达阿萨大啊aaaaa啊啊啊啊啊阿萨大萨达阿萨大啊aaaaa啊啊啊啊啊阿萨大萨达阿萨大啊aaaaa啊啊啊啊啊阿萨大萨达阿萨大啊aaaaa啊啊啊啊啊阿萨大萨达阿萨大啊aaaaa啊啊啊啊啊阿萨大萨达阿萨大啊aaaaa啊啊啊啊啊阿萨大萨达阿萨大啊aaaaa啊啊啊啊啊阿萨大萨达阿萨大啊aaaaa啊啊啊啊啊阿萨大萨达阿萨大啊aaaaa啊啊啊啊啊阿萨大萨达阿萨大啊aaaaa啊啊啊啊啊阿萨大萨达阿萨大啊aaaaa啊啊啊啊啊阿萨大萨达阿萨大啊aaaaa啊啊啊啊啊阿萨大萨达阿萨大啊aaaaa啊啊啊啊啊阿萨大萨达阿萨大啊aaaaa啊啊啊啊啊阿萨大萨达阿萨大啊aaaaa啊啊啊啊啊阿萨大萨达阿萨大啊aaaaa啊啊啊啊啊阿萨大萨达阿萨大啊aaaaa啊啊啊啊啊阿萨大萨达阿萨大啊aaaaa啊啊啊啊啊阿萨大萨达阿萨大啊aaaaa啊啊啊啊啊阿萨大萨达阿萨大啊aaaaa啊啊啊啊啊阿萨大萨达阿萨大啊aaaaa啊啊啊啊啊阿萨大萨达阿萨大啊aaaaa啊啊啊啊啊阿萨大萨达阿萨大啊aaaaa啊啊啊啊啊阿萨大萨达阿萨大啊aaaaa啊啊啊啊啊阿萨大萨达阿萨大啊aaaaa啊啊啊啊啊阿萨大萨达阿萨大啊aaaaa啊啊啊啊啊阿萨大萨达阿萨大啊aaaaa啊啊啊啊啊阿萨大萨达阿萨大啊aaaaa啊啊啊啊啊阿萨大萨达阿萨大啊aaaaa啊啊啊啊啊阿萨大萨达阿萨大啊aaaaa啊啊啊啊啊阿萨大萨达阿萨大啊aaaaa啊啊啊啊啊阿萨大萨达阿萨大啊aaaaa啊啊啊啊啊阿萨大萨达阿萨大啊aaaaa啊啊啊啊啊阿萨大萨达阿萨大啊aaaaa啊啊啊啊啊阿萨大萨达阿萨大啊aaaaa啊啊啊啊啊阿萨大萨达阿萨大啊aaaaa啊啊啊啊啊阿萨大萨达阿萨大啊aaaaa啊啊啊啊啊阿萨大萨达阿萨大啊aaaaa啊啊啊啊啊阿萨大萨达阿萨大啊aaaaa啊啊啊啊啊阿萨大萨达阿萨大啊aaaaa啊啊啊啊啊阿萨大萨达阿萨大啊aaaaa啊啊啊啊啊".encode("utf-8")
+
     def ReadFile_handle(self, *argus):
         print("ReadFile_handle")
-        print(argus[0])
+        file_path = argus[0]
+        buffer = argus[1].contents
+        buffer_len = argus[2]
+        read_len_buffer = argus[3].contents
+        offset = argus[4]
         # print(argus[1])
         # print(argus[2])
         # print(argus[3])
-        # print(argus[4])
-        # print(type(argus[1]))
-        # print(type(wintypes.LPVOID()))
-        sss = create_string_buffer("aaa".encode("utf8"))
-        # sss = cast(sss, c_char_p)
-        print(type(argus[1].contents))
-        print(len(sss.value))
-        memmove(argus[1].contents, sss, len(sss.value))
-        print(type(argus[3]))
-        argus[3][0] = c_ulong(len(sss.value))
+        filesize = len(self.bbbbtxt)
+        if(argus[4] >= filesize):
+            return 0
+        
+        print("offset: " + str(offset))
+        sss = create_string_buffer(self.bbbbtxt[offset:offset + 2])
+        memmove(buffer, sss, len(sss.value))
+        memmove(pointer(read_len_buffer), pointer(c_ulong(len(sss.value))), sizeof(c_ulong))
         return 0
 
     def WriteFile_handle(self, *argus):

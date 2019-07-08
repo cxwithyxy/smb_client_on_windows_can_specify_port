@@ -89,7 +89,7 @@ class Builder(SLT.Singleton):
             'ZwCreateFile': "WINFUNCTYPE(wintypes.ULONG, wintypes.LPCWSTR,POINTER(DOKAN_IO_SECURITY_CONTEXT), wintypes.DWORD, wintypes.ULONG, wintypes.ULONG, wintypes.ULONG, wintypes.ULONG, POINTER(DOKAN_FILE_INFO))",
             'Cleanup': "WINFUNCTYPE(wintypes.ULONG, wintypes.LPCWSTR, POINTER(DOKAN_FILE_INFO))",
             'CloseFile': "WINFUNCTYPE(wintypes.ULONG, wintypes.LPCWSTR, POINTER(DOKAN_FILE_INFO))",
-            'ReadFile': "WINFUNCTYPE(wintypes.ULONG, wintypes.LPCWSTR, POINTER(c_char * 65536), wintypes.DWORD, wintypes.LPDWORD, c_longlong, POINTER(DOKAN_FILE_INFO))",
+            'ReadFile': "WINFUNCTYPE(wintypes.ULONG, wintypes.LPCWSTR, POINTER(c_char * 1), wintypes.DWORD, wintypes.LPDWORD, c_longlong, POINTER(DOKAN_FILE_INFO))",
             'WriteFile': "WINFUNCTYPE(wintypes.ULONG, wintypes.LPCWSTR, wintypes.LPVOID, wintypes.DWORD, wintypes.LPDWORD, c_longlong, POINTER(DOKAN_FILE_INFO))",
             'FlushFileBuffers': "WINFUNCTYPE(wintypes.ULONG, wintypes.LPCWSTR, POINTER(DOKAN_FILE_INFO))",
             'GetFileInformation': "WINFUNCTYPE(wintypes.ULONG, wintypes.LPCWSTR, POINTER(BY_HANDLE_FILE_INFORMATION), POINTER(DOKAN_FILE_INFO))",
