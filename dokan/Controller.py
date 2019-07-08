@@ -11,7 +11,7 @@ class Controller(SLT):
 
     
     def __Singleton_Init__(self):
-        self.dokan_dll = windll.LoadLibrary("C:\Windows\System32\dokan1.dll")
+        self.dokan_dll = windll.LoadLibrary("dokan1.dll")
         print("load dll end")
 
     def set_operations(self, callback_dict = {}):

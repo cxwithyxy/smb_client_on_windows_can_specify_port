@@ -51,7 +51,7 @@ class Server(SLT):
             # print(argus[5])
             # print(argus[6])
             print(argus[7].contents.IsDirectory)
-            argus[7].contents.IsDirectory
+            # argus[7].contents.IsDirectory = 0
         return 0
     
     def Cleanup_handle(self, *argus):
