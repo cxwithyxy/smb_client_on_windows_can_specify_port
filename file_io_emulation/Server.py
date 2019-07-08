@@ -98,7 +98,7 @@ class Server(SLT):
             return 0
         
         print("offset: " + str(offset))
-        sss = create_string_buffer(self.bbbbtxt[offset:offset + 2])
+        sss = create_string_buffer(self.bbbbtxt[offset:offset + buffer_len])
         memmove(buffer, sss, len(sss.value))
         memmove(read_len_buffer, pointer(c_ulong(len(sss.value))), sizeof(c_ulong))
         return 0
