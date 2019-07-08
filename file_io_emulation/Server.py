@@ -88,7 +88,7 @@ class Server(SLT):
         file_path = argus[0]
         buffer = argus[1].contents
         buffer_len = argus[2]
-        read_len_buffer = argus[3].contents
+        read_len_buffer = argus[3]
         offset = argus[4]
         # print(argus[1])
         # print(argus[2])
@@ -100,7 +100,7 @@ class Server(SLT):
         print("offset: " + str(offset))
         sss = create_string_buffer(self.bbbbtxt[offset:offset + 2])
         memmove(buffer, sss, len(sss.value))
-        memmove(pointer(read_len_buffer), pointer(c_ulong(len(sss.value))), sizeof(c_ulong))
+        memmove(read_len_buffer, pointer(c_ulong(len(sss.value))), sizeof(c_ulong))
         return 0
 
     def WriteFile_handle(self, *argus):
