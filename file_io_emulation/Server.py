@@ -5,7 +5,6 @@ from ctypes import *
 import ctypes.wintypes as wintypes
 import _thread
 from fs.memoryfs import MemoryFS
-from file_io_emulation.File import File
 
 class Server(SLT):
 
@@ -64,10 +63,11 @@ class Server(SLT):
 
     def ZwCreateFile_handle(self, *argus):
         # print("ZwCreateFile_handle")
-        if(self.mem_fs.isfile(self.get_path_from_dokan_path(argus[0]))):
+        # if(self.mem_fs.isfile(self.get_path_from_dokan_path(argus[0]))):
+            # argus[7].contents.IsDirectory = c_ubyte(False)
             # print(argus[7].contents.IsDirectory)
             # argus[7].contents.Context = 6727
-            return 0xC0000035
+            # return 0xC0000035
         # else:
         #     print("FileName")
         #     print(argus[0])
@@ -84,7 +84,7 @@ class Server(SLT):
         #     print("CreateOptions")
         #     print(argus[6])
         #     print(argus[7].contents.IsDirectory)
-        #     argus[7].contents.IsDirectory = c_ubyte(True)
+            # argus[7].contents.IsDirectory = c_ubyte(True)
         return 0
     
     def Cleanup_handle(self, *argus):
@@ -111,18 +111,21 @@ class Server(SLT):
         return 0
 
     def ReadFile_handle(self, *argus):
-        # print("ReadFile_handle")
-        file_path = argus[0]
+        file_path = self.get_path_from_dokan_path(argus[0])
         buffer = argus[1].contents
         buffer_len = argus[2]
         read_len_buffer = argus[3]
         offset = argus[4]
-        filesize = len(self.bbbbtxt)
-        if(argus[4] >= filesize):
-            return 0
-        sss = create_string_buffer(self.bbbbtxt[offset:offset + buffer_len])
-        memmove(buffer, sss, len(sss.value))
-        memmove(read_len_buffer, pointer(c_ulong(len(sss.value))), sizeof(c_ulong))
+        if(self.mem_fs.exists(file_path)):
+            filesize = self.mem_fs.getsize(file_path)
+            if(argus[4] >= filesize):
+                return 0
+            f = self.mem_fs.open(file_path, "rb")
+            f.seek(offset, 0)
+            read_out = f.read(buffer_len)
+            sss = create_string_buffer(read_out)
+            memmove(buffer, sss, len(sss.value))
+            memmove(read_len_buffer, pointer(c_ulong(len(sss.value))), sizeof(c_ulong))
         return 0
 
     def WriteFile_handle(self, *argus):
