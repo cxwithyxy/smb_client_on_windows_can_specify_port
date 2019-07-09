@@ -5,6 +5,8 @@ from ctypes import *
 import ctypes.wintypes as wintypes
 import _thread
 from fs.memoryfs import MemoryFS
+import dokan.ntstatus as ntstatus
+import dokan.fileinfo as fileinfo
 
 class Server(SLT):
 
@@ -41,7 +43,7 @@ class Server(SLT):
         else:
             argus[2].contents.IsDirectory = c_ubyte(True)
             argus[1].contents.dwFileAttributes = 16
-        return 0x00000000
+        return ntstatus.STATUS_SUCCESS
 
     def FindFilesWithPattern_handle(self, *argus):
         for path in self.mem_fs.walk.files():
@@ -50,11 +52,11 @@ class Server(SLT):
             find_data.cFileName = info.name
             find_data.cAlternateFileName = info.suffixes[0]
             argus[2](pointer(find_data), argus[3])
-        return 0
+        return ntstatus.STATUS_SUCCESS
 
     def FindFiles_handle(self, *argus):
         # print("FindFiles_handle")
-        return 0
+        return ntstatus.STATUS_SUCCESS
 
     def get_path_from_dokan_path(self, dokan_path):
         path = str(dokan_path)
@@ -63,37 +65,37 @@ class Server(SLT):
 
     def ZwCreateFile_handle(self, *argus):
         # print("ZwCreateFile_handle")
-        # if(self.mem_fs.isfile(self.get_path_from_dokan_path(argus[0]))):
-            # argus[7].contents.IsDirectory = c_ubyte(False)
-            # print(argus[7].contents.IsDirectory)
-            # argus[7].contents.Context = 6727
-            # return 0xC0000035
-        # else:
-        #     print("FileName")
-        #     print(argus[0])
-        #     print("SecurityContext")
-        #     print(argus[1])
-        #     print("DesiredAccess")
-        #     print(argus[2])
-        #     print("FileAttributes")
-        #     print(argus[3])
-        #     print("ShareAccess")
-        #     print(argus[4])
-        #     print("CreateDisposition")
-        #     print(argus[5])
-        #     print("CreateOptions")
-        #     print(argus[6])
-        #     print(argus[7].contents.IsDirectory)
-            # argus[7].contents.IsDirectory = c_ubyte(True)
-        return 0
+        FileName = argus[0]
+        SecurityContext = argus[1]
+        DesiredAccess = argus[2]
+        FileAttributes = argus[3]
+        ShareAccess = argus[4]
+        CreateDisposition = argus[5]
+        CreateOptions = argus[6]
+        path = self.get_path_from_dokan_path(FileName)
+        # print(path)
+        # print(CreateDisposition)
+        # print(CreateOptions)
+        is_file = self.mem_fs.isfile(path)
+        is_exists = self.mem_fs.exists(path)
+        if(is_exists and is_file):
+            argus[7].contents.IsDirectory = c_ubyte(False)
+            if(CreateDisposition == fileinfo.OPEN_ALWAYS or CreateDisposition == fileinfo.CREATE_ALWAYS):
+                return ntstatus.STATUS_OBJECT_NAME_COLLISION
+        if(is_exists and not is_file):
+            if(CreateOptions != fileinfo.FILE_NON_DIRECTORY_FILE ):
+                argus[7].contents.IsDirectory = c_ubyte(True)
+            else:
+                return ntstatus.STATUS_NOT_A_DIRECTORY
+        return ntstatus.STATUS_SUCCESS
     
     def Cleanup_handle(self, *argus):
         # print("Cleanup_handle")
-        return 0
+        return ntstatus.STATUS_SUCCESS
 
     def CloseFile_handle(self, *argus):
         # print("CloseFile_handle")
-        return 0
+        return ntstatus.STATUS_SUCCESS
 
     def GetDiskFreeSpace_handle(self, *argus):
         # print("GetDiskFreeSpace_handle")
@@ -102,13 +104,13 @@ class Server(SLT):
         argus[0][0] = c_ulonglong(free)
         argus[1][0] = c_ulonglong(total)
         argus[2][0] = c_ulonglong(free)
-        return 0
+        return ntstatus.STATUS_SUCCESS
 
     def GetVolumeInformation_handle(self, *argus):
         # print("GetVolumeInformation_handle")
         sss = wintypes.LPWSTR(self.volume_name)
         memmove(argus[0], sss, len(sss.value) * 2)
-        return 0
+        return ntstatus.STATUS_SUCCESS
 
     def ReadFile_handle(self, *argus):
         file_path = self.get_path_from_dokan_path(argus[0])
@@ -119,18 +121,18 @@ class Server(SLT):
         if(self.mem_fs.exists(file_path)):
             filesize = self.mem_fs.getsize(file_path)
             if(argus[4] >= filesize):
-                return 0
+                return ntstatus.STATUS_SUCCESS
             f = self.mem_fs.open(file_path, "rb")
             f.seek(offset, 0)
             read_out = f.read(buffer_len)
             sss = create_string_buffer(read_out)
             memmove(buffer, sss, len(sss.value))
             memmove(read_len_buffer, pointer(c_ulong(len(sss.value))), sizeof(c_ulong))
-        return 0
+        return ntstatus.STATUS_SUCCESS
 
     def WriteFile_handle(self, *argus):
         # print("WriteFile_handle")
-        return 0
+        return ntstatus.STATUS_SUCCESS
 
     def start(self):
         """启动dokan
