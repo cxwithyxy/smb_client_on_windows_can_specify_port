@@ -4,12 +4,21 @@ from PythonSingleton.Singleton import Singleton as SLT
 from ctypes import *
 import ctypes.wintypes as wintypes
 import _thread
+from fs.memoryfs import MemoryFS
+from file_io_emulation.File import File
 
 class Server(SLT):
 
     files_tree = []
     volume_name = "我虚拟出来的硬盘"
     mount_point = "k"
+    mem_fs = None
+
+    def init_files_tree(self):
+        self.mem_fs = MemoryFS()
+        self.mem_fs.writetext('a.txt','i am a')
+        self.mem_fs.writetext('b.txt','i am b')
+
 
     def __Singleton_Init__(self):
         dokan_controller().set_options(self.mount_point)
@@ -25,35 +34,39 @@ class Server(SLT):
             "FindFilesWithPattern": self.FindFilesWithPattern_handle,
             "GetFileInformation": self.GetFileInformation_handle
         })
+        self.init_files_tree()
     
     def GetFileInformation_handle(self, *argus):
-        if(argus[0].find("bbbb") != -1):
+        if(self.mem_fs.isfile(self.get_path_from_dokan_path(argus[0]))):
             argus[1].contents.dwFileAttributes = 128
-        if(argus[0] == "\\"):
-            argus[1].contents.dwFileAttributes = 16
+        else:
             argus[2].contents.IsDirectory = c_ubyte(True)
+            argus[1].contents.dwFileAttributes = 16
         return 0x00000000
 
     def FindFilesWithPattern_handle(self, *argus):
-        # print("FindFilesWithPattern_handle")
-        find_data = wintypes.WIN32_FIND_DATAW()
-        find_data.cFileName = ("aaaa.txt")
-        find_data.cAlternateFileName = "txt"
-        argus[2](pointer(find_data), argus[3])
-        find_data = wintypes.WIN32_FIND_DATAW()
-        find_data.cFileName = ("bbbbb.txt")
-        argus[2](pointer(find_data), argus[3])
+        for path in self.mem_fs.walk.files():
+            info = self.mem_fs.getinfo(path)
+            find_data = wintypes.WIN32_FIND_DATAW()
+            find_data.cFileName = info.name
+            find_data.cAlternateFileName = info.suffixes[0]
+            argus[2](pointer(find_data), argus[3])
         return 0
 
     def FindFiles_handle(self, *argus):
         # print("FindFiles_handle")
         return 0
 
+    def get_path_from_dokan_path(self, dokan_path):
+        path = str(dokan_path)
+        path = path.replace("\\", "/")
+        return path
+
     def ZwCreateFile_handle(self, *argus):
         # print("ZwCreateFile_handle")
-        if(argus[0] != "\\"):
+        if(self.mem_fs.isfile(self.get_path_from_dokan_path(argus[0]))):
             # print(argus[7].contents.IsDirectory)
-            argus[7].contents.Context = 6727
+            # argus[7].contents.Context = 6727
             return 0xC0000035
         # else:
         #     print("FileName")
@@ -96,8 +109,6 @@ class Server(SLT):
         sss = wintypes.LPWSTR(self.volume_name)
         memmove(argus[0], sss, len(sss.value) * 2)
         return 0
-
-    bbbbtxt = "阿萨大萨达阿萨大啊aaaaa啊啊啊啊啊阿萨大萨达阿萨大啊aaaaa啊啊啊啊啊阿萨大萨达阿萨大啊aaaaa啊啊啊啊啊阿萨大萨达阿萨大啊aaaaa啊啊啊啊啊阿萨大萨达阿萨大啊aaaaa啊啊啊啊啊阿萨大萨达阿萨大啊aaaaa啊啊啊啊啊阿萨大萨达阿萨大啊aaaaa啊啊啊啊啊阿萨大萨达阿萨大啊aaaaa啊啊啊啊啊阿萨大萨达阿萨大啊aaaaa啊啊啊啊啊阿萨大萨达阿萨大啊aaaaa啊啊啊啊啊阿萨大萨达阿萨大啊aaaaa啊啊啊啊啊阿萨大萨达阿萨大啊aaaaa啊啊啊啊啊阿萨大萨达阿萨大啊aaaaa啊啊啊啊啊阿萨大萨达阿萨大啊aaaaa啊啊啊啊啊阿萨大萨达阿萨大啊aaaaa啊啊啊啊啊阿萨大萨达阿萨大啊aaaaa啊啊啊啊啊阿萨大萨达阿萨大啊aaaaa啊啊啊啊啊阿萨大萨达阿萨大啊aaaaa啊啊啊啊啊阿萨大萨达阿萨大啊aaaaa啊啊啊啊啊阿萨大萨达阿萨大啊aaaaa啊啊啊啊啊阿萨大萨达阿萨大啊aaaaa啊啊啊啊啊阿萨大萨达阿萨大啊aaaaa啊啊啊啊啊阿萨大萨达阿萨大啊aaaaa啊啊啊啊啊阿萨大萨达阿萨大啊aaaaa啊啊啊啊啊阿萨大萨达阿萨大啊aaaaa啊啊啊啊啊阿萨大萨达阿萨大啊aaaaa啊啊啊啊啊阿萨大萨达阿萨大啊aaaaa啊啊啊啊啊阿萨大萨达阿萨大啊aaaaa啊啊啊啊啊阿萨大萨达阿萨大啊aaaaa啊啊啊啊啊阿萨大萨达阿萨大啊aaaaa啊啊啊啊啊阿萨大萨达阿萨大啊aaaaa啊啊啊啊啊阿萨大萨达阿萨大啊aaaaa啊啊啊啊啊阿萨大萨达阿萨大啊aaaaa啊啊啊啊啊阿萨大萨达阿萨大啊aaaaa啊啊啊啊啊阿萨大萨达阿萨大啊aaaaa啊啊啊啊啊阿萨大萨达阿萨大啊aaaaa啊啊啊啊啊阿萨大萨达阿萨大啊aaaaa啊啊啊啊啊阿萨大萨达阿萨大啊aaaaa啊啊啊啊啊阿萨大萨达阿萨大啊aaaaa啊啊啊啊啊阿萨大萨达阿萨大啊aaaaa啊啊啊啊啊阿萨大萨达阿萨大啊aaaaa啊啊啊啊啊阿萨大萨达阿萨大啊aaaaa啊啊啊啊啊阿萨大萨达阿萨大啊aaaaa啊啊啊啊啊阿萨大萨达阿萨大啊aaaaa啊啊啊啊啊阿萨大萨达阿萨大啊aaaaa啊啊啊啊啊阿萨大萨达阿萨大啊aaaaa啊啊啊啊啊阿萨大萨达阿萨大啊aaaaa啊啊啊啊啊阿萨大萨达阿萨大啊aaaaa啊啊啊啊啊".encode("utf-8")
 
     def ReadFile_handle(self, *argus):
         # print("ReadFile_handle")

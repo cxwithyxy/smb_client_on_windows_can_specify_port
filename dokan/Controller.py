@@ -12,7 +12,6 @@ class Controller(SLT):
     
     def __Singleton_Init__(self):
         self.dokan_dll = windll.LoadLibrary("dokan1.dll")
-        print("load dll end")
 
     def set_operations(self, callback_dict = {}):
         """设置dokan回调操作
