@@ -19,7 +19,9 @@ class Server(SLT):
         self.mem_fs = MemoryFS()
         self.mem_fs.writetext('a.txt','i am a')
         self.mem_fs.writetext('b.txt','i am b')
-
+        self.mem_fs.makedir("cxcxcx")
+        self.mem_fs.writetext('cxcxcx/aaaa.txt','i am in dir cxcxcx , i am named aaaa')
+        self.mem_fs.tree()
 
     def __Singleton_Init__(self):
         dokan_controller().set_options(self.mount_point)
@@ -65,13 +67,20 @@ class Server(SLT):
 
     def FindFilesWithPattern_handle(self, *argus):
         path = self.get_path_from_dokan_path(argus[0])
-        print("FindFilesWithPattern: " + path)
-        for walk_path in self.mem_fs.walk.files():
-            print(walk_path)
+        # print("FindFilesWithPattern: " + path)
+        for walk_path in self.mem_fs.walk.dirs(path, max_depth = 1):
+            if(self.mem_fs.exists(walk_path)):
+                info = self.mem_fs.getinfo(walk_path)
+                find_data = wintypes.WIN32_FIND_DATAW()
+                find_data.dwFileAttributes = 16
+                find_data.cFileName = info.name
+                argus[2](pointer(find_data), argus[3])
+        for walk_path in self.mem_fs.walk.files(path, max_depth = 1):
             if(self.mem_fs.exists(walk_path)):
                 info = self.mem_fs.getinfo(walk_path)
                 filesize = self.mem_fs.getsize(walk_path)
                 find_data = wintypes.WIN32_FIND_DATAW()
+                find_data.dwFileAttributes = 128
                 find_data.cFileName = info.name
                 find_data.cAlternateFileName = info.suffixes[0]
                 find_data.ftCreationTime = wintypes.FILETIME()
@@ -93,7 +102,10 @@ class Server(SLT):
         return path
 
     def ZwCreateFile_handle(self, *argus):
-        # print("ZwCreateFile_handle")
+        '''
+        https://docs.microsoft.com/zh-cn/windows/win32/api/winternl/nf-winternl-ntcreatefile
+        '''
+        # print("\nZwCreateFile_handle\n")
         FileName = argus[0]
         SecurityContext = argus[1]
         DesiredAccess = argus[2]
@@ -103,14 +115,14 @@ class Server(SLT):
         CreateOptions = argus[6]
         path = self.get_path_from_dokan_path(FileName)
         # print(path)
-        # print(CreateDisposition)
-        # print(CreateOptions)
-        # print("DesiredAccess:" + str(DesiredAccess))
+        # print("CreateDisposition: "+ str(hex(CreateDisposition)))
+        # print("CreateOptions: " + str(hex(CreateOptions)))
+        # print("DesiredAccess:" + str(hex(DesiredAccess)))
         is_file = self.mem_fs.isfile(path)
         is_exists = self.mem_fs.exists(path)
         if(is_exists and is_file):
             argus[7].contents.IsDirectory = c_ubyte(False)
-            if(CreateDisposition == fileinfo.OPEN_ALWAYS or CreateDisposition == fileinfo.CREATE_ALWAYS):
+            if(CreateDisposition & fileinfo.OPEN_ALWAYS or CreateDisposition & fileinfo.CREATE_ALWAYS):
                 return ntstatus.STATUS_OBJECT_NAME_COLLISION
         if(is_exists and not is_file):
             if(CreateOptions != fileinfo.FILE_NON_DIRECTORY_FILE ):
