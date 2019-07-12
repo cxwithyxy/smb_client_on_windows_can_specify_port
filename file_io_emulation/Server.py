@@ -40,6 +40,7 @@ class Server(SLT):
     def GetFileInformation_handle(self, *argus):
         path = self.get_path_from_dokan_path(argus[0])
         print(path)
+        filesize = self.mem_fs.getsize(path)
         if(self.mem_fs.isfile(path)):
             argus[1].contents.dwFileAttributes = 128
         else:
@@ -50,7 +51,7 @@ class Server(SLT):
         argus[1].contents.ftLastWriteTime = wintypes.FILETIME()
         argus[1].contents.dwVolumeSerialNumber = wintypes.DWORD(0)
         argus[1].contents.nFileSizeHigh = wintypes.DWORD(0)
-        argus[1].contents.nFileSizeLow = wintypes.DWORD(1024)
+        argus[1].contents.nFileSizeLow = wintypes.DWORD(filesize)
         argus[1].contents.nNumberOfLinks = wintypes.DWORD(1)
         argus[1].contents.nFileIndexHigh = wintypes.DWORD(99)
         argus[1].contents.nFileIndexLow = wintypes.DWORD(99)
