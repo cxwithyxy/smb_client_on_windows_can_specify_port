@@ -23,6 +23,8 @@ class Server(SLT):
         self.mem_fs.makedir("cxcxcx")
         self.mem_fs.writetext('cxcxcx/aaaa.txt','i am in dir cxcxcx , i am named aaaa')
         self.mem_fs.writetext('cxcxcx/bbbbbb.txt','b1b12b2b12b2b12b12b12b12b123b123b123b23bb1211bb')
+        self.mem_fs.makedir("qqq")
+        self.mem_fs.writetext('qqq/qqq.txt','qqq')
         self.mem_fs.tree()
 
     def __Singleton_Init__(self):
@@ -69,7 +71,8 @@ class Server(SLT):
 
     def FindFilesWithPattern_handle(self, *argus):
         path = self.get_path_from_dokan_path(argus[0])
-        # print("FindFilesWithPattern: " + path)
+        print("\n===== FindFilesWithPattern =====\n")
+        print("FindFilesWithPattern: " + path)
         for walk_path in self.mem_fs.walk.dirs(path, max_depth = 1):
             if(self.mem_fs.exists(walk_path)):
                 info = self.mem_fs.getinfo(walk_path)
@@ -107,7 +110,7 @@ class Server(SLT):
         '''
         https://docs.microsoft.com/zh-cn/windows/win32/api/winternl/nf-winternl-ntcreatefile
         '''
-        print("\nZwCreateFile_handle\n")
+        print("\n===== ZwCreateFile_handle =====\n")
         FileName = argus[0]
         SecurityContext = argus[1]
         DesiredAccess = argus[2]
@@ -135,7 +138,6 @@ class Server(SLT):
                 if(check_is_exists()):
                     return ntstatus.STATUS_OBJECT_NAME_COLLISION
                 self.mem_fs.makedir(path)
-                self.mem_fs.tree()
                 return ntstatus.STATUS_SUCCESS
             if(CreateOptions & fileinfo.FILE_NON_DIRECTORY_FILE):
                 pass
