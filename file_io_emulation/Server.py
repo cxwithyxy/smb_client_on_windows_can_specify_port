@@ -7,6 +7,7 @@ import _thread
 from fs.memoryfs import MemoryFS
 import dokan.ntstatus as ntstatus
 import dokan.fileinfo as fileinfo
+from functools import partial as currying
 
 class Server(SLT):
 
@@ -116,13 +117,13 @@ class Server(SLT):
         CreateOptions = argus[6]
         path = self.get_path_from_dokan_path(FileName)
         is_file = self.mem_fs.isfile(path)
-        is_exists = self.mem_fs.exists(path)
+        check_is_exists = currying(self.mem_fs.exists, path)
         print(path)
         print("CreateDisposition: "+ str(hex(CreateDisposition)))
         print("CreateOptions: " + str(hex(CreateOptions)))
         print("DesiredAccess:" + str(hex(DesiredAccess)))
         if(CreateDisposition == fileinfo.CREATE_NEW):
-            if(is_exists):
+            if(check_is_exists()):
                 if(is_file):
                     argus[7].contents.IsDirectory = c_ubyte(False)
                 else:
@@ -131,6 +132,8 @@ class Server(SLT):
             return ntstatus.STATUS_OBJECT_NAME_NOT_FOUND
         if(CreateDisposition == fileinfo.CREATE_ALWAYS):
             if(CreateOptions & fileinfo.FILE_DIRECTORY_FILE):
+                if(check_is_exists()):
+                    return ntstatus.STATUS_OBJECT_NAME_COLLISION
                 self.mem_fs.makedir(path)
                 self.mem_fs.tree()
                 return ntstatus.STATUS_SUCCESS
