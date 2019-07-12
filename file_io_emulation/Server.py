@@ -21,6 +21,7 @@ class Server(SLT):
         self.mem_fs.writetext('b.txt','i am b')
         self.mem_fs.makedir("cxcxcx")
         self.mem_fs.writetext('cxcxcx/aaaa.txt','i am in dir cxcxcx , i am named aaaa')
+        self.mem_fs.writetext('cxcxcx/bbbbbb.txt','b1b12b2b12b2b12b12b12b12b123b123b123b23bb1211bb')
         self.mem_fs.tree()
 
     def __Singleton_Init__(self):
@@ -105,7 +106,7 @@ class Server(SLT):
         '''
         https://docs.microsoft.com/zh-cn/windows/win32/api/winternl/nf-winternl-ntcreatefile
         '''
-        # print("\nZwCreateFile_handle\n")
+        print("\nZwCreateFile_handle\n")
         FileName = argus[0]
         SecurityContext = argus[1]
         DesiredAccess = argus[2]
@@ -114,22 +115,24 @@ class Server(SLT):
         CreateDisposition = argus[5]
         CreateOptions = argus[6]
         path = self.get_path_from_dokan_path(FileName)
-        # print(path)
-        # print("CreateDisposition: "+ str(hex(CreateDisposition)))
-        # print("CreateOptions: " + str(hex(CreateOptions)))
-        # print("DesiredAccess:" + str(hex(DesiredAccess)))
         is_file = self.mem_fs.isfile(path)
         is_exists = self.mem_fs.exists(path)
-        if(is_exists and is_file):
-            argus[7].contents.IsDirectory = c_ubyte(False)
-            if(CreateDisposition & fileinfo.OPEN_ALWAYS or CreateDisposition & fileinfo.CREATE_ALWAYS):
-                return ntstatus.STATUS_OBJECT_NAME_COLLISION
-        if(is_exists and not is_file):
-            if(CreateOptions != fileinfo.FILE_NON_DIRECTORY_FILE ):
-                argus[7].contents.IsDirectory = c_ubyte(True)
+        print(path)
+        print("CreateDisposition: "+ str(hex(CreateDisposition)))
+        print("CreateOptions: " + str(hex(CreateOptions)))
+        print("DesiredAccess:" + str(hex(DesiredAccess)))
+        if(is_exists):
+            if(is_file):
+                argus[7].contents.IsDirectory = c_ubyte(False)
+                if(CreateDisposition & fileinfo.OPEN_ALWAYS or CreateDisposition & fileinfo.CREATE_ALWAYS):
+                    return ntstatus.STATUS_OBJECT_NAME_COLLISION
             else:
-                return ntstatus.STATUS_NOT_A_DIRECTORY
-        return ntstatus.STATUS_SUCCESS
+                if(CreateOptions != fileinfo.FILE_NON_DIRECTORY_FILE ):
+                    argus[7].contents.IsDirectory = c_ubyte(True)
+                else:
+                    return ntstatus.STATUS_NOT_A_DIRECTORY
+            return ntstatus.STATUS_SUCCESS
+        return ntstatus.STATUS_OBJECT_NAME_NOT_FOUND
     
     def Cleanup_handle(self, *argus):
         # print("Cleanup_handle")
