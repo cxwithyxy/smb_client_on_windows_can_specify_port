@@ -38,11 +38,22 @@ class Server(SLT):
         self.init_files_tree()
     
     def GetFileInformation_handle(self, *argus):
-        if(self.mem_fs.isfile(self.get_path_from_dokan_path(argus[0]))):
+        path = self.get_path_from_dokan_path(argus[0])
+        print(path)
+        if(self.mem_fs.isfile(path)):
             argus[1].contents.dwFileAttributes = 128
         else:
             argus[2].contents.IsDirectory = c_ubyte(True)
             argus[1].contents.dwFileAttributes = 16
+        argus[1].contents.ftCreationTime = wintypes.FILETIME()
+        argus[1].contents.ftLastAccessTime = wintypes.FILETIME()
+        argus[1].contents.ftLastWriteTime = wintypes.FILETIME()
+        argus[1].contents.dwVolumeSerialNumber = wintypes.DWORD(0)
+        argus[1].contents.nFileSizeHigh = wintypes.DWORD(0)
+        argus[1].contents.nFileSizeLow = wintypes.DWORD(1024)
+        argus[1].contents.nNumberOfLinks = wintypes.DWORD(1)
+        argus[1].contents.nFileIndexHigh = wintypes.DWORD(99)
+        argus[1].contents.nFileIndexLow = wintypes.DWORD(99)
         return ntstatus.STATUS_SUCCESS
 
     def FindFilesWithPattern_handle(self, *argus):
@@ -76,6 +87,7 @@ class Server(SLT):
         # print(path)
         # print(CreateDisposition)
         # print(CreateOptions)
+        # print("DesiredAccess:" + str(DesiredAccess))
         is_file = self.mem_fs.isfile(path)
         is_exists = self.mem_fs.exists(path)
         if(is_exists and is_file):
