@@ -121,18 +121,22 @@ class Server(SLT):
         print("CreateDisposition: "+ str(hex(CreateDisposition)))
         print("CreateOptions: " + str(hex(CreateOptions)))
         print("DesiredAccess:" + str(hex(DesiredAccess)))
-        if(is_exists):
-            if(is_file):
-                argus[7].contents.IsDirectory = c_ubyte(False)
-                if(CreateDisposition & fileinfo.OPEN_ALWAYS or CreateDisposition & fileinfo.CREATE_ALWAYS):
-                    return ntstatus.STATUS_OBJECT_NAME_COLLISION
-            else:
-                if(CreateOptions != fileinfo.FILE_NON_DIRECTORY_FILE ):
-                    argus[7].contents.IsDirectory = c_ubyte(True)
+        if(CreateDisposition == fileinfo.CREATE_NEW):
+            if(is_exists):
+                if(is_file):
+                    argus[7].contents.IsDirectory = c_ubyte(False)
                 else:
-                    return ntstatus.STATUS_NOT_A_DIRECTORY
-            return ntstatus.STATUS_SUCCESS
-        return ntstatus.STATUS_OBJECT_NAME_NOT_FOUND
+                    argus[7].contents.IsDirectory = c_ubyte(True)
+                return ntstatus.STATUS_SUCCESS
+            return ntstatus.STATUS_OBJECT_NAME_NOT_FOUND
+        if(CreateDisposition == fileinfo.CREATE_ALWAYS):
+            if(CreateOptions & fileinfo.FILE_DIRECTORY_FILE):
+                self.mem_fs.makedir(path)
+                self.mem_fs.tree()
+                return ntstatus.STATUS_SUCCESS
+            if(CreateOptions & fileinfo.FILE_NON_DIRECTORY_FILE):
+                pass
+
     
     def Cleanup_handle(self, *argus):
         # print("Cleanup_handle")
