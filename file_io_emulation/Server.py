@@ -40,10 +40,18 @@ class Server(SLT):
             "WriteFile": self.WriteFile_handle,
             "FindFiles": self.FindFiles_handle,
             "GetFileInformation": self.GetFileInformation_handle,
-            "GetFileSecurity": self.GetFileSecurity_handle
+            "GetFileSecurity": self.GetFileSecurity_handle,
+            "MoveFile": self.MoveFile_handle
         })
         self.init_files_tree()
     
+    def MoveFile_handle(self, *argus):
+        print("MoveFile_handle")
+        print(argus[0])
+        print(argus[1])
+        print(argus[2])
+        return ntstatus.STATUS_SUCCESS
+
     def GetFileSecurity_handle(self, *argus):
         print("GetFileSecurity_handle")
         return ntstatus.STATUS_SUCCESS
@@ -71,8 +79,8 @@ class Server(SLT):
 
     def FindFiles_handle(self, *argus):
         path = self.get_path_from_dokan_path(argus[0])
-        print("\n===== FindFiles_handle =====\n")
-        print("FindFilesWithPattern: " + path)
+        # print("\n===== FindFiles_handle =====\n")
+        # print("FindFilesWithPattern: " + path)
         for walk_path in self.mem_fs.walk.dirs(path, max_depth = 1):
             if(self.mem_fs.exists(walk_path)):
                 info = self.mem_fs.getinfo(walk_path)
@@ -107,7 +115,7 @@ class Server(SLT):
         '''
         https://docs.microsoft.com/zh-cn/windows/win32/api/winternl/nf-winternl-ntcreatefile
         '''
-        print(f"\n{time.strftime('%H:%M:%S', time.localtime())}===== ZwCreateFile_handle =====\n")
+        # print(f"\n{time.strftime('%H:%M:%S', time.localtime())}===== ZwCreateFile_handle =====\n")
         FileName = argus[0]
         SecurityContext = argus[1]
         DesiredAccess = argus[2]
@@ -118,10 +126,10 @@ class Server(SLT):
         path = self.get_path_from_dokan_path(FileName)
         is_file = self.mem_fs.isfile(path)
         check_is_exists = currying(self.mem_fs.exists, path)
-        print(path)
-        print("CreateDisposition: "+ str(hex(CreateDisposition)))
-        print("CreateOptions: " + str(hex(CreateOptions)))
-        print("DesiredAccess:" + str(hex(DesiredAccess)))
+        # print(path)
+        # print("CreateDisposition: "+ str(hex(CreateDisposition)))
+        # print("CreateOptions: " + str(hex(CreateOptions)))
+        # print("DesiredAccess:" + str(hex(DesiredAccess)))
         if(CreateDisposition == fileinfo.CREATE_NEW):
             if(check_is_exists()):
                 if(is_file):

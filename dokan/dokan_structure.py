@@ -99,7 +99,7 @@ class Builder(SLT.Singleton):
             'SetFileTime': "WINFUNCTYPE(wintypes.ULONG, c_wchar_p)",
             'DeleteFile': "WINFUNCTYPE(wintypes.ULONG, c_wchar_p)",
             'DeleteDirectory': "WINFUNCTYPE(wintypes.ULONG, c_wchar_p)",
-            'MoveFile': "WINFUNCTYPE(wintypes.ULONG, c_wchar_p)",
+            'MoveFile': "WINFUNCTYPE(wintypes.ULONG, wintypes.LPCWSTR, wintypes.LPCWSTR, wintypes.BOOL, POINTER(DOKAN_FILE_INFO))",
             'SetEndOfFile': "WINFUNCTYPE(wintypes.ULONG, c_wchar_p)",
             'SetAllocationSize': "WINFUNCTYPE(wintypes.ULONG, c_wchar_p)",
             'LockFile': "WINFUNCTYPE(wintypes.ULONG, c_wchar_p)",
