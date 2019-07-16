@@ -8,6 +8,7 @@ from fs.memoryfs import MemoryFS
 import dokan.ntstatus as ntstatus
 import dokan.fileinfo as fileinfo
 from functools import partial as currying
+import time
 
 class Server(SLT):
 
@@ -38,7 +39,6 @@ class Server(SLT):
             "ReadFile": self.ReadFile_handle,
             "WriteFile": self.WriteFile_handle,
             "FindFiles": self.FindFiles_handle,
-            "FindFilesWithPattern": self.FindFilesWithPattern_handle,
             "GetFileInformation": self.GetFileInformation_handle,
             "GetFileSecurity": self.GetFileSecurity_handle
         })
@@ -69,9 +69,9 @@ class Server(SLT):
         argus[1].contents.nFileIndexLow = wintypes.DWORD(99)
         return ntstatus.STATUS_SUCCESS
 
-    def FindFilesWithPattern_handle(self, *argus):
+    def FindFiles_handle(self, *argus):
         path = self.get_path_from_dokan_path(argus[0])
-        print("\n===== FindFilesWithPattern =====\n")
+        print("\n===== FindFiles_handle =====\n")
         print("FindFilesWithPattern: " + path)
         for walk_path in self.mem_fs.walk.dirs(path, max_depth = 1):
             if(self.mem_fs.exists(walk_path)):
@@ -79,7 +79,7 @@ class Server(SLT):
                 find_data = wintypes.WIN32_FIND_DATAW()
                 find_data.dwFileAttributes = 16
                 find_data.cFileName = info.name
-                argus[2](pointer(find_data), argus[3])
+                argus[1](pointer(find_data), argus[2])
         for walk_path in self.mem_fs.walk.files(path, max_depth = 1):
             if(self.mem_fs.exists(walk_path)):
                 info = self.mem_fs.getinfo(walk_path)
@@ -95,10 +95,7 @@ class Server(SLT):
                 find_data.nFileSizeLow = wintypes.DWORD(filesize)
                 find_data.dwReserved0 = wintypes.DWORD(0)
                 find_data.dwReserved1 = wintypes.DWORD(0)
-                argus[2](pointer(find_data), argus[3])
-        return ntstatus.STATUS_SUCCESS
-
-    def FindFiles_handle(self, *argus):
+                argus[1](pointer(find_data), argus[2])
         return ntstatus.STATUS_SUCCESS
 
     def get_path_from_dokan_path(self, dokan_path):
@@ -110,7 +107,7 @@ class Server(SLT):
         '''
         https://docs.microsoft.com/zh-cn/windows/win32/api/winternl/nf-winternl-ntcreatefile
         '''
-        print("\n===== ZwCreateFile_handle =====\n")
+        print(f"\n{time.strftime('%H:%M:%S', time.localtime())}===== ZwCreateFile_handle =====\n")
         FileName = argus[0]
         SecurityContext = argus[1]
         DesiredAccess = argus[2]
