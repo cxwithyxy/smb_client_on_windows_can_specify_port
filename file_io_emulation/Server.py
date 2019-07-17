@@ -41,11 +41,17 @@ class Server(SLT):
             "FindFiles": self.FindFiles_handle,
             "GetFileInformation": self.GetFileInformation_handle,
             "GetFileSecurity": self.GetFileSecurity_handle,
-            "MoveFile": self.MoveFile_handle
+            "MoveFile": self.MoveFile_handle,
+            "DeleteFile": self.DeleteFile_handle
         })
         self.init_files_tree()
     
+    def DeleteFile_handle(self, *argus):
+        print("DeleteFile_handle")
+        return ntstatus.STATUS_SUCCESS
+
     def MoveFile_handle(self, *argus):
+        print("MoveFile_handle")
         src_path = self.get_path_from_dokan_path(argus[0])
         dst_path = self.get_path_from_dokan_path(argus[1])
         is_exists = self.mem_fs.exists(src_path)
@@ -152,6 +158,8 @@ class Server(SLT):
                 return ntstatus.STATUS_SUCCESS
         if(CreateDisposition == fileinfo.OPEN_EXISTING):
             return ntstatus.STATUS_SUCCESS
+        if(CreateDisposition == fileinfo.TRUNCATE_EXISTING):
+            return ntstatus.STATUS_SUCCESS
         print(f"\n{time.strftime('%H:%M:%S', time.localtime())}===== ZwCreateFile_handle =====\n")
         print(path)
         print("CreateDisposition: "+ str(hex(CreateDisposition)))
@@ -160,7 +168,15 @@ class Server(SLT):
 
     
     def Cleanup_handle(self, *argus):
-        # print("Cleanup_handle")
+        file_path = self.get_path_from_dokan_path(argus[0])
+        is_file = self.mem_fs.isfile(file_path)
+        if(argus[1].contents.DeleteOnClose):
+            print(file_path)
+            print(argus[1].contents.DeleteOnClose)
+            if(is_file):
+                self.mem_fs.remove(file_path)
+            else:
+                self.mem_fs.removedir(file_path)
         return ntstatus.STATUS_SUCCESS
 
     def CloseFile_handle(self, *argus):

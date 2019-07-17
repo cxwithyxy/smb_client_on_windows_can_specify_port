@@ -97,7 +97,7 @@ class Builder(SLT.Singleton):
             'FindFilesWithPattern': "WINFUNCTYPE(wintypes.ULONG, wintypes.LPCWSTR, wintypes.LPCWSTR, other_func.class_dict['callback_FillFindData'], POINTER(DOKAN_FILE_INFO))",
             'SetFileAttributes': "WINFUNCTYPE(wintypes.ULONG, c_wchar_p)",
             'SetFileTime': "WINFUNCTYPE(wintypes.ULONG, c_wchar_p)",
-            'DeleteFile': "WINFUNCTYPE(wintypes.ULONG, c_wchar_p)",
+            'DeleteFile': "WINFUNCTYPE(wintypes.ULONG, wintypes.LPCWSTR, POINTER(DOKAN_FILE_INFO))",
             'DeleteDirectory': "WINFUNCTYPE(wintypes.ULONG, c_wchar_p)",
             'MoveFile': "WINFUNCTYPE(wintypes.ULONG, wintypes.LPCWSTR, wintypes.LPCWSTR, wintypes.BOOL, POINTER(DOKAN_FILE_INFO))",
             'SetEndOfFile': "WINFUNCTYPE(wintypes.ULONG, c_wchar_p)",
