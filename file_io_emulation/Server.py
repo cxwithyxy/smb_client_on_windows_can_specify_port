@@ -121,7 +121,6 @@ class Server(SLT):
         '''
         https://docs.microsoft.com/zh-cn/windows/win32/api/winternl/nf-winternl-ntcreatefile
         '''
-        # print(f"\n{time.strftime('%H:%M:%S', time.localtime())}===== ZwCreateFile_handle =====\n")
         FileName = argus[0]
         SecurityContext = argus[1]
         DesiredAccess = argus[2]
@@ -132,6 +131,7 @@ class Server(SLT):
         path = self.get_path_from_dokan_path(FileName)
         is_file = self.mem_fs.isfile(path)
         check_is_exists = currying(self.mem_fs.exists, path)
+        # print(f"\n{time.strftime('%H:%M:%S', time.localtime())}===== ZwCreateFile_handle =====\n")
         # print(path)
         # print("CreateDisposition: "+ str(hex(CreateDisposition)))
         # print("CreateOptions: " + str(hex(CreateOptions)))
@@ -152,6 +152,8 @@ class Server(SLT):
                 return ntstatus.STATUS_SUCCESS
             if(CreateOptions & fileinfo.FILE_NON_DIRECTORY_FILE):
                 pass
+        if(CreateDisposition == fileinfo.OPEN_EXISTING):
+            return ntstatus.STATUS_SUCCESS
 
     
     def Cleanup_handle(self, *argus):
@@ -196,7 +198,21 @@ class Server(SLT):
         return ntstatus.STATUS_SUCCESS
 
     def WriteFile_handle(self, *argus):
-        # print("WriteFile_handle")
+        # print("\n===== WriteFile_handle =====\n")
+        file_path = self.get_path_from_dokan_path(argus[0])
+        buffer_len = argus[2]
+        write_len_buffer = argus[3]
+        offset = argus[4]
+        # print(file_path)
+        # print(f"Buffer: {argus[1]}")
+        # print(f"NumberOfBytesToWrite: {buffer_len}")
+        # print(f"NumberOfBytesWritten: {write_len_buffer}")
+        # print(f"Offset: {offset}")
+        f = self.mem_fs.open(file_path, "wb")
+        f.seek(offset, 0)
+        f.write(argus[1])
+        f.close()
+        memmove(write_len_buffer, pointer(c_ulong(buffer_len)), sizeof(c_ulong))
         return ntstatus.STATUS_SUCCESS
 
     def start(self):
