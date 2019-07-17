@@ -46,10 +46,16 @@ class Server(SLT):
         self.init_files_tree()
     
     def MoveFile_handle(self, *argus):
-        print("MoveFile_handle")
-        print(argus[0])
-        print(argus[1])
-        print(argus[2])
+        src_path = self.get_path_from_dokan_path(argus[0])
+        dst_path = self.get_path_from_dokan_path(argus[1])
+        is_exists = self.mem_fs.exists(src_path)
+        is_file = self.mem_fs.isfile(src_path)
+        if(not is_exists):
+            return ntstatus.STATUS_OBJECTID_NOT_FOUND
+        if(is_file):
+            self.mem_fs.move(src_path, dst_path, argus[2])
+        else:
+            self.mem_fs.movedir(src_path, dst_path, True)
         return ntstatus.STATUS_SUCCESS
 
     def GetFileSecurity_handle(self, *argus):
