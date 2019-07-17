@@ -131,11 +131,6 @@ class Server(SLT):
         path = self.get_path_from_dokan_path(FileName)
         is_file = self.mem_fs.isfile(path)
         check_is_exists = currying(self.mem_fs.exists, path)
-        # print(f"\n{time.strftime('%H:%M:%S', time.localtime())}===== ZwCreateFile_handle =====\n")
-        # print(path)
-        # print("CreateDisposition: "+ str(hex(CreateDisposition)))
-        # print("CreateOptions: " + str(hex(CreateOptions)))
-        # print("DesiredAccess:" + str(hex(DesiredAccess)))
         if(CreateDisposition == fileinfo.CREATE_NEW):
             if(check_is_exists()):
                 if(is_file):
@@ -151,9 +146,17 @@ class Server(SLT):
                 self.mem_fs.makedir(path)
                 return ntstatus.STATUS_SUCCESS
             if(CreateOptions & fileinfo.FILE_NON_DIRECTORY_FILE):
-                pass
+                if(check_is_exists()):
+                    return ntstatus.STATUS_OBJECT_NAME_COLLISION
+                self.mem_fs.create(path)
+                return ntstatus.STATUS_SUCCESS
         if(CreateDisposition == fileinfo.OPEN_EXISTING):
             return ntstatus.STATUS_SUCCESS
+        print(f"\n{time.strftime('%H:%M:%S', time.localtime())}===== ZwCreateFile_handle =====\n")
+        print(path)
+        print("CreateDisposition: "+ str(hex(CreateDisposition)))
+        print("CreateOptions: " + str(hex(CreateOptions)))
+        print("DesiredAccess:" + str(hex(DesiredAccess)))
 
     
     def Cleanup_handle(self, *argus):
