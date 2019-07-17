@@ -23,7 +23,12 @@ class Server(SLT):
         self.mem_fs.writetext('b.txt','i am b')
         self.mem_fs.makedir("cxcxcx")
         self.mem_fs.writetext('cxcxcx/aaaa.txt','i am in dir cxcxcx , i am named aaaa')
-        self.mem_fs.writetext('cxcxcx/bbbbbb.txt','b1b12b2b12b2b12b12b12b12b123b123b123b23bb1211bb')
+        bbbb = ""
+        for i in range(262144):
+            bbbb += str("ab")
+            pass
+        bbbb += "\n====== end =====\n"
+        self.mem_fs.writetext('cxcxcx/bbbb.txt',bbbb)
         self.mem_fs.makedir("qqq")
         self.mem_fs.writetext('qqq/qqq.txt','qqq')
         self.mem_fs.tree()
@@ -44,9 +49,14 @@ class Server(SLT):
             "MoveFile": self.MoveFile_handle,
             "DeleteFile": self.DeleteFile_handle,
             "DeleteDirectory": self.DeleteFile_handle,
+            "FlushFileBuffers": self.FlushFileBuffers_handle
         })
         self.init_files_tree()
     
+    def FlushFileBuffers_handle(self, *argus):
+        print("FlushFileBuffers_handle")
+        return ntstatus.STATUS_SUCCESS
+
     def DeleteFile_handle(self, *argus):
         print("DeleteFile_handle")
         print(argus[0])
@@ -151,11 +161,12 @@ class Server(SLT):
         path = self.get_path_from_dokan_path(FileName)
         is_file = self.mem_fs.isfile(path)
         check_is_exists = currying(self.mem_fs.exists, path)
-        # print(f"\n{time.strftime('%H:%M:%S', time.localtime())}===== ZwCreateFile_handle =====\n")
-        # print(path)
-        # print("CreateDisposition: "+ str(hex(CreateDisposition)))
-        # print("CreateOptions: " + str(hex(CreateOptions)))
-        # print("DesiredAccess:" + str(hex(DesiredAccess)))
+        def print_out():
+            print(f"\n{time.strftime('%H:%M:%S', time.localtime())}===== ZwCreateFile_handle =====\n")
+            print(path)
+            print("CreateDisposition: "+ str(hex(CreateDisposition)))
+            print("CreateOptions: " + str(hex(CreateOptions)))
+            print("DesiredAccess:" + str(hex(DesiredAccess)))
         if(CreateDisposition == fileinfo.CREATE_NEW):
             if(check_is_exists()):
                 if(is_file):
@@ -169,12 +180,12 @@ class Server(SLT):
                 if(check_is_exists()):
                     return ntstatus.STATUS_OBJECT_NAME_COLLISION
                 self.mem_fs.makedir(path)
-                return ntstatus.STATUS_SUCCESS
             if(CreateOptions & fileinfo.FILE_NON_DIRECTORY_FILE):
                 if(check_is_exists()):
                     return ntstatus.STATUS_OBJECT_NAME_COLLISION
                 self.mem_fs.create(path)
-                return ntstatus.STATUS_SUCCESS
+            print_out()
+            return ntstatus.STATUS_SUCCESS
         if(CreateDisposition == fileinfo.OPEN_EXISTING):
             return ntstatus.STATUS_SUCCESS
         if(CreateDisposition == fileinfo.TRUNCATE_EXISTING):
@@ -221,17 +232,33 @@ class Server(SLT):
         buffer_len = argus[2]
         read_len_buffer = argus[3]
         offset = argus[4]
+        # print(F'file_path: {file_path}')
+        # print(F'buffer_len: {buffer_len}')
+        # print(F'offset: {offset}')
         if(self.mem_fs.exists(file_path)):
             filesize = self.mem_fs.getsize(file_path)
-            if(argus[4] >= filesize):
-                return ntstatus.STATUS_SUCCESS
+            # if(offset >= filesize):
+            #     return ntstatus.STATUS_SUCCESS
             f = self.mem_fs.open(file_path, "rb")
             f.seek(offset, 0)
             read_out = f.read(buffer_len)
+            read_out_len = len(read_out)
+            # print(F"readout: {read_out}")
+            # print(F"readoutlen: {read_out_len}")
             sss = create_string_buffer(read_out)
-            memmove(buffer, sss, len(sss.value))
-            memmove(read_len_buffer, pointer(c_ulong(len(sss.value))), sizeof(c_ulong))
+            # print(type(bytearray(read_out)))
+
+            # sss = c_char * read_out_len
+            # sss(b"222")
+            memmove(buffer, pointer(sss), read_out_len)
+            memmove(read_len_buffer, pointer(c_ulong(read_out_len)), sizeof(c_ulong))
         return ntstatus.STATUS_SUCCESS
+
+    def rrrr(self):
+        print(self.mem_fs.readtext("/a2.txt"))
+
+    def rrrr2(self):
+        print(self.mem_fs.readtext("cxcxcx/bbbb.txt"))
 
     def WriteFile_handle(self, *argus):
         # print("\n===== WriteFile_handle =====\n")
@@ -239,16 +266,16 @@ class Server(SLT):
         buffer_len = argus[2]
         write_len_buffer = argus[3]
         offset = argus[4]
-        # print(file_path)
-        # print(f"Buffer: {argus[1]}")
+        # print(f'file_path: {file_path}')
         # print(f"NumberOfBytesToWrite: {buffer_len}")
-        # print(f"NumberOfBytesWritten: {write_len_buffer}")
         # print(f"Offset: {offset}")
-        f = self.mem_fs.open(file_path, "wb")
+        f = self.mem_fs.open(file_path, "ab")
         f.seek(offset, 0)
-        f.write(argus[1])
+        write_len = f.write(argus[1])
+        # print(type(argus[1]))
+        # print(f'实际写入: {argus[1]}')
         f.close()
-        memmove(write_len_buffer, pointer(c_ulong(buffer_len)), sizeof(c_ulong))
+        memmove(write_len_buffer, pointer(c_ulong(write_len)), sizeof(c_ulong))
         return ntstatus.STATUS_SUCCESS
 
     def start(self):
