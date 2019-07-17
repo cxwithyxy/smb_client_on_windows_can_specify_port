@@ -19,7 +19,7 @@ class Server(SLT):
 
     def init_files_tree(self):
         self.mem_fs = MemoryFS()
-        self.mem_fs.writetext('a.txt','i am a')
+        self.mem_fs.writetext('aaaattttttasdaa.txt','i am a')
         self.mem_fs.writetext('b.txt','i am b')
         self.mem_fs.makedir("cxcxcx")
         self.mem_fs.writetext('cxcxcx/aaaa.txt','i am in dir cxcxcx , i am named aaaa')
@@ -117,7 +117,11 @@ class Server(SLT):
                 find_data = wintypes.WIN32_FIND_DATAW()
                 find_data.dwFileAttributes = 128
                 find_data.cFileName = info.name
-                find_data.cAlternateFileName = info.suffixes[0]
+                if(len(info.name) >= 11):
+                    info_cut = info.name.split(".")
+                    find_data.cAlternateFileName = info_cut[0][0:6] + "~1." + info_cut[1]
+                else:
+                    find_data.cAlternateFileName = info.name
                 find_data.ftCreationTime = wintypes.FILETIME()
                 find_data.ftLastAccessTime = wintypes.FILETIME()
                 find_data.ftLastWriteTime = wintypes.FILETIME()
@@ -147,11 +151,11 @@ class Server(SLT):
         path = self.get_path_from_dokan_path(FileName)
         is_file = self.mem_fs.isfile(path)
         check_is_exists = currying(self.mem_fs.exists, path)
-        print(f"\n{time.strftime('%H:%M:%S', time.localtime())}===== ZwCreateFile_handle =====\n")
-        print(path)
-        print("CreateDisposition: "+ str(hex(CreateDisposition)))
-        print("CreateOptions: " + str(hex(CreateOptions)))
-        print("DesiredAccess:" + str(hex(DesiredAccess)))
+        # print(f"\n{time.strftime('%H:%M:%S', time.localtime())}===== ZwCreateFile_handle =====\n")
+        # print(path)
+        # print("CreateDisposition: "+ str(hex(CreateDisposition)))
+        # print("CreateOptions: " + str(hex(CreateOptions)))
+        # print("DesiredAccess:" + str(hex(DesiredAccess)))
         if(CreateDisposition == fileinfo.CREATE_NEW):
             if(check_is_exists()):
                 if(is_file):

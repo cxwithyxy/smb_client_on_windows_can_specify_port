@@ -1,6 +1,5 @@
 from file_io_emulation.Server import Server as FS_server
 
-# FS_server()
 FS_server().start()
 while(True):
     a = input("==>\n")
@@ -13,13 +12,15 @@ while(True):
 # from ctypes import *
 # import ctypes.wintypes as wintypes
 
-# sssa = create_string_buffer(b"12345679")
-# sss = cast(sssa, c_void_p)
-# print(type(sss.value))
+# a = windll.LoadLibrary("kernel32.dll")
+# GetShortPathName = a.GetShortPathNameW
+# print(a)
+# the_input = create_string_buffer(b"cxcxcxcxcxcxc.txt")
+# the_output = create_string_buffer(200)
+# print(the_output.value)
+# a.GetShortPathNameW(the_input, the_output, wintypes.DWORD(14))
+# print(the_output.value)
 
-# sss = pointer(sss)
-# print(type(sss.contents))
-
-# memmove(sss.contents, create_string_buffer(b"1111111"), 10)
-# sss = cast(sss.contents, c_char_p)
-# print(sss.value)
+# import win32.win32api as win32api
+# a = win32api.GetShortPathName("M:\\kaikengqi.docx")
+# print(a)
