@@ -42,12 +42,22 @@ class Server(SLT):
             "GetFileInformation": self.GetFileInformation_handle,
             "GetFileSecurity": self.GetFileSecurity_handle,
             "MoveFile": self.MoveFile_handle,
-            "DeleteFile": self.DeleteFile_handle
+            "DeleteFile": self.DeleteFile_handle,
+            "DeleteDirectory": self.DeleteFile_handle,
         })
         self.init_files_tree()
     
     def DeleteFile_handle(self, *argus):
         print("DeleteFile_handle")
+        print(argus[0])
+        file_path = self.get_path_from_dokan_path(argus[0])
+        is_file = self.mem_fs.isfile(file_path)
+        if(argus[1].contents.DeleteOnClose):
+            print(file_path)
+            print(argus[1].contents.DeleteOnClose)
+            if(not is_file):
+                if(not self.mem_fs.isempty(file_path)):
+                    return ntstatus.STATUS_DIRECTORY_NOT_EMPTY
         return ntstatus.STATUS_SUCCESS
 
     def MoveFile_handle(self, *argus):
@@ -137,6 +147,11 @@ class Server(SLT):
         path = self.get_path_from_dokan_path(FileName)
         is_file = self.mem_fs.isfile(path)
         check_is_exists = currying(self.mem_fs.exists, path)
+        print(f"\n{time.strftime('%H:%M:%S', time.localtime())}===== ZwCreateFile_handle =====\n")
+        print(path)
+        print("CreateDisposition: "+ str(hex(CreateDisposition)))
+        print("CreateOptions: " + str(hex(CreateOptions)))
+        print("DesiredAccess:" + str(hex(DesiredAccess)))
         if(CreateDisposition == fileinfo.CREATE_NEW):
             if(check_is_exists()):
                 if(is_file):
@@ -160,11 +175,7 @@ class Server(SLT):
             return ntstatus.STATUS_SUCCESS
         if(CreateDisposition == fileinfo.TRUNCATE_EXISTING):
             return ntstatus.STATUS_SUCCESS
-        print(f"\n{time.strftime('%H:%M:%S', time.localtime())}===== ZwCreateFile_handle =====\n")
-        print(path)
-        print("CreateDisposition: "+ str(hex(CreateDisposition)))
-        print("CreateOptions: " + str(hex(CreateOptions)))
-        print("DesiredAccess:" + str(hex(DesiredAccess)))
+        
 
     
     def Cleanup_handle(self, *argus):
@@ -176,6 +187,8 @@ class Server(SLT):
             if(is_file):
                 self.mem_fs.remove(file_path)
             else:
+                if(not self.mem_fs.isempty(file_path)):
+                    return ntstatus.STATUS_DIRECTORY_NOT_EMPTY
                 self.mem_fs.removedir(file_path)
         return ntstatus.STATUS_SUCCESS
 

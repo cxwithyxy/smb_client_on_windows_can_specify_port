@@ -98,7 +98,7 @@ class Builder(SLT.Singleton):
             'SetFileAttributes': "WINFUNCTYPE(wintypes.ULONG, c_wchar_p)",
             'SetFileTime': "WINFUNCTYPE(wintypes.ULONG, c_wchar_p)",
             'DeleteFile': "WINFUNCTYPE(wintypes.ULONG, wintypes.LPCWSTR, POINTER(DOKAN_FILE_INFO))",
-            'DeleteDirectory': "WINFUNCTYPE(wintypes.ULONG, c_wchar_p)",
+            'DeleteDirectory': "WINFUNCTYPE(wintypes.ULONG, wintypes.LPCWSTR, POINTER(DOKAN_FILE_INFO))",
             'MoveFile': "WINFUNCTYPE(wintypes.ULONG, wintypes.LPCWSTR, wintypes.LPCWSTR, wintypes.BOOL, POINTER(DOKAN_FILE_INFO))",
             'SetEndOfFile': "WINFUNCTYPE(wintypes.ULONG, c_wchar_p)",
             'SetAllocationSize': "WINFUNCTYPE(wintypes.ULONG, c_wchar_p)",
@@ -149,7 +149,7 @@ class Builder(SLT.Singleton):
         dokan_options.MountPoint = wintypes.LPCWSTR(mount_point)
         # dokan_options.UNCName = c_wchar_p("")
         # dokan_options.Timeout = 5 * 1000
-        dokan_options.AllocationUnitSize = 4 * 1024
+        # dokan_options.AllocationUnitSize = 4 * 1024
         # dokan_options.SectorSize = 10 * 1024 * 1024
         return dokan_options
     
