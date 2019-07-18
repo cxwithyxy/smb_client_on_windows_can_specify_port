@@ -90,7 +90,7 @@ class Builder(SLT.Singleton):
             'Cleanup': "WINFUNCTYPE(wintypes.ULONG, wintypes.LPCWSTR, POINTER(DOKAN_FILE_INFO))",
             'CloseFile': "WINFUNCTYPE(wintypes.ULONG, wintypes.LPCWSTR, POINTER(DOKAN_FILE_INFO))",
             'ReadFile': "WINFUNCTYPE(wintypes.ULONG, wintypes.LPCWSTR, POINTER(c_char * 1), wintypes.DWORD, wintypes.LPDWORD, c_longlong, POINTER(DOKAN_FILE_INFO))",
-            'WriteFile': "WINFUNCTYPE(wintypes.ULONG, wintypes.LPCWSTR, c_char_p, wintypes.DWORD, wintypes.LPDWORD, c_longlong, POINTER(DOKAN_FILE_INFO))",
+            'WriteFile': "WINFUNCTYPE(wintypes.ULONG, wintypes.LPCWSTR, POINTER(c_char * 1), wintypes.DWORD, wintypes.LPDWORD, c_longlong, POINTER(DOKAN_FILE_INFO))",
             'FlushFileBuffers': "WINFUNCTYPE(wintypes.ULONG, wintypes.LPCWSTR, POINTER(DOKAN_FILE_INFO))",
             'GetFileInformation': "WINFUNCTYPE(wintypes.ULONG, wintypes.LPCWSTR, POINTER(BY_HANDLE_FILE_INFORMATION), POINTER(DOKAN_FILE_INFO))",
             'FindFiles': "WINFUNCTYPE(wintypes.ULONG, wintypes.LPCWSTR, other_func.class_dict['callback_FillFindData'], POINTER(DOKAN_FILE_INFO))",
