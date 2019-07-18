@@ -19,19 +19,19 @@ class Server(SLT):
 
     def init_files_tree(self):
         self.mem_fs = MemoryFS()
-        self.mem_fs.writetext('aaaattttttasdaa.txt','i am a')
-        self.mem_fs.writetext('b.txt','i am b')
-        self.mem_fs.makedir("cxcxcx")
-        self.mem_fs.writetext('cxcxcx/aaaa.txt','i am in dir cxcxcx , i am named aaaa')
-        bbbb = ""
-        for i in range(262144):
-            bbbb += str("ab")
-            pass
-        bbbb += "\n====== end =====\n"
-        self.mem_fs.writetext('cxcxcx/bbbb.txt',bbbb)
-        self.mem_fs.makedir("qqq")
-        self.mem_fs.writetext('qqq/qqq.txt','qqq')
-        self.mem_fs.tree()
+        # self.mem_fs.writetext('aaaattttttasdaa.txt','i am a')
+        # self.mem_fs.writetext('b.txt','i am b')
+        # self.mem_fs.makedir("cxcxcx")
+        # self.mem_fs.writetext('cxcxcx/aaaa.txt','i am in dir cxcxcx , i am named aaaa')
+        # bbbb = ""
+        # for i in range(262144):
+        #     bbbb += str("ab")
+        #     pass
+        # bbbb += "\n====== end =====\n"
+        # self.mem_fs.writetext('cxcxcx/bbbb.txt',bbbb)
+        # self.mem_fs.makedir("qqq")
+        # self.mem_fs.writetext('qqq/qqq.txt','qqq')
+        # self.mem_fs.tree()
 
     def __Singleton_Init__(self):
         dokan_controller().set_options(self.mount_point)
@@ -54,24 +54,24 @@ class Server(SLT):
         self.init_files_tree()
     
     def FlushFileBuffers_handle(self, *argus):
-        print("FlushFileBuffers_handle")
+        # print("FlushFileBuffers_handle")
         return ntstatus.STATUS_SUCCESS
 
     def DeleteFile_handle(self, *argus):
-        print("DeleteFile_handle")
-        print(argus[0])
+        # print("DeleteFile_handle")
+        # print(argus[0])
         file_path = self.get_path_from_dokan_path(argus[0])
         is_file = self.mem_fs.isfile(file_path)
         if(argus[1].contents.DeleteOnClose):
-            print(file_path)
-            print(argus[1].contents.DeleteOnClose)
+            # print(file_path)
+            # print(argus[1].contents.DeleteOnClose)
             if(not is_file):
                 if(not self.mem_fs.isempty(file_path)):
                     return ntstatus.STATUS_DIRECTORY_NOT_EMPTY
         return ntstatus.STATUS_SUCCESS
 
     def MoveFile_handle(self, *argus):
-        print("MoveFile_handle")
+        # print("MoveFile_handle")
         src_path = self.get_path_from_dokan_path(argus[0])
         dst_path = self.get_path_from_dokan_path(argus[1])
         is_exists = self.mem_fs.exists(src_path)
@@ -85,7 +85,7 @@ class Server(SLT):
         return ntstatus.STATUS_SUCCESS
 
     def GetFileSecurity_handle(self, *argus):
-        print("GetFileSecurity_handle")
+        # print("GetFileSecurity_handle")
         return ntstatus.STATUS_NOT_IMPLEMENTED
 
     def GetFileInformation_handle(self, *argus):
@@ -129,7 +129,7 @@ class Server(SLT):
                 find_data.cFileName = info.name
                 if(len(info.name) >= 11):
                     info_cut = info.name.split(".")
-                    find_data.cAlternateFileName = info_cut[0][0:6] + "~1." + info_cut[1]
+                    cAlternateFileName = info_cut[0][0:6] + "~1." + info.suffix[0:3]
                 else:
                     find_data.cAlternateFileName = info.name
                 find_data.ftCreationTime = wintypes.FILETIME()
@@ -161,12 +161,12 @@ class Server(SLT):
         path = self.get_path_from_dokan_path(FileName)
         is_file = self.mem_fs.isfile(path)
         check_is_exists = currying(self.mem_fs.exists, path)
-        def print_out():
-            print(f"\n{time.strftime('%H:%M:%S', time.localtime())}===== ZwCreateFile_handle =====\n")
-            print(path)
-            print("CreateDisposition: "+ str(hex(CreateDisposition)))
-            print("CreateOptions: " + str(hex(CreateOptions)))
-            print("DesiredAccess:" + str(hex(DesiredAccess)))
+        # def print_out():
+        #     print(f"\n{time.strftime('%H:%M:%S', time.localtime())}===== ZwCreateFile_handle =====\n")
+        #     print(path)
+        #     print("CreateDisposition: "+ str(hex(CreateDisposition)))
+        #     print("CreateOptions: " + str(hex(CreateOptions)))
+        #     print("DesiredAccess:" + str(hex(DesiredAccess)))
         if(CreateDisposition == fileinfo.CREATE_NEW):
             if(check_is_exists()):
                 if(is_file):
@@ -184,7 +184,6 @@ class Server(SLT):
                 if(check_is_exists()):
                     return ntstatus.STATUS_OBJECT_NAME_COLLISION
                 self.mem_fs.create(path)
-            print_out()
             return ntstatus.STATUS_SUCCESS
         if(CreateDisposition == fileinfo.OPEN_EXISTING):
             return ntstatus.STATUS_SUCCESS
@@ -197,8 +196,8 @@ class Server(SLT):
         file_path = self.get_path_from_dokan_path(argus[0])
         is_file = self.mem_fs.isfile(file_path)
         if(argus[1].contents.DeleteOnClose):
-            print(file_path)
-            print(argus[1].contents.DeleteOnClose)
+            # print(file_path)
+            # print(argus[1].contents.DeleteOnClose)
             if(is_file):
                 self.mem_fs.remove(file_path)
             else:
@@ -213,8 +212,8 @@ class Server(SLT):
 
     def GetDiskFreeSpace_handle(self, *argus):
         # print("GetDiskFreeSpace_handle")
-        free = 20 * 1024 * 1024
-        total = 20 * 1024 * 1024
+        free = 20 * 1024 * 1024 * 1024
+        total = 20 * 1024 * 1024 * 1024
         argus[0][0] = c_ulonglong(free)
         argus[1][0] = c_ulonglong(total)
         argus[2][0] = c_ulonglong(free)
@@ -253,12 +252,6 @@ class Server(SLT):
             memmove(buffer, pointer(sss), read_out_len)
             memmove(read_len_buffer, pointer(c_ulong(read_out_len)), sizeof(c_ulong))
         return ntstatus.STATUS_SUCCESS
-
-    def rrrr(self):
-        print(self.mem_fs.readtext("/a2.txt"))
-
-    def rrrr2(self):
-        print(self.mem_fs.readtext("cxcxcx/bbbb.txt"))
 
     def WriteFile_handle(self, *argus):
         # print("\n===== WriteFile_handle =====\n")
