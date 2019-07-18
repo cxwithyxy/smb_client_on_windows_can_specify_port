@@ -86,7 +86,7 @@ class Server(SLT):
 
     def GetFileSecurity_handle(self, *argus):
         print("GetFileSecurity_handle")
-        return ntstatus.STATUS_SUCCESS
+        return ntstatus.STATUS_NOT_IMPLEMENTED
 
     def GetFileInformation_handle(self, *argus):
         path = self.get_path_from_dokan_path(argus[0])

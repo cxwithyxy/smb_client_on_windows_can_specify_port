@@ -108,7 +108,7 @@ class Builder(SLT.Singleton):
             'GetVolumeInformation': "WINFUNCTYPE(wintypes.ULONG, POINTER(wintypes.LPWSTR), wintypes.DWORD, wintypes.LPDWORD, wintypes.LPDWORD, wintypes.LPDWORD, wintypes.LPWSTR, wintypes.DWORD, POINTER(DOKAN_FILE_INFO))",
             'Mounted': "WINFUNCTYPE(wintypes.ULONG, c_wchar_p)",
             'Unmounted': "WINFUNCTYPE(wintypes.ULONG, c_wchar_p)",
-            'GetFileSecurity': "WINFUNCTYPE(wintypes.ULONG, c_wchar_p)",
+            'GetFileSecurity': 'WINFUNCTYPE(wintypes.ULONG, wintypes.LPCWSTR, wintypes.DWORD, c_void_p, wintypes.ULONG, POINTER(wintypes.ULONG), POINTER(DOKAN_FILE_INFO))',
             'SetFileSecurity': "WINFUNCTYPE(wintypes.ULONG, c_wchar_p)",
             'FindStreams': "WINFUNCTYPE(wintypes.ULONG, c_wchar_p)",
         },
