@@ -1,26 +1,27 @@
-from file_io_emulation.Server import Server as FS_server
+# from file_io_emulation.Server import Server as FS_server
 
-FS_server().start()
-while(True):
-    a = input("==>\n")
-    if(a == "stop"):
-        FS_server().stop()
-    if(a == "q"):
-        break
+# FS_server().start()
+# while(True):
+#     a = input("==>\n")
+#     if(a == "stop"):
+#         FS_server().stop()
+#     if(a == "q"):
+#         break
+import fs
+import fs.smbfs
+import configparser
 
+conf = configparser.ConfigParser()
+conf.read('setting.ini', encoding="utf8")
 
-# from ctypes import *
-# import ctypes.wintypes as wintypes
+smb_fs = fs.smbfs.SMBFS(
+    conf['smb']['ip'],
+    username = conf['smb']['username'],
+    passwd = conf['smb']['passwd'],
+    timeout = 15,
+    port = int(conf['smb']['port']),
+    direct_tcp = int(conf['smb']['direct_tcp'])
+)
 
-# a = windll.LoadLibrary("kernel32.dll")
-# GetShortPathName = a.GetShortPathNameW
-# print(a)
-# the_input = create_string_buffer(b"cxcxcxcxcxcxc.txt")
-# the_output = create_string_buffer(200)
-# print(the_output.value)
-# a.GetShortPathNameW(the_input, the_output, wintypes.DWORD(14))
-# print(the_output.value)
-
-# import win32.win32api as win32api
-# a = win32api.GetShortPathName("M:\\kaikengqi.docx")
-# print(a)
+print(smb_fs)
+print(smb_fs.listdir(conf['smb']['enter_path']))

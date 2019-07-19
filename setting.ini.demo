@@ -1,0 +1,7 @@
+[smb]
+ip = 127.0.0.1
+username = administrator
+passwd = 1
+port = 139
+direct_tcp = 0
+enter_path = /
