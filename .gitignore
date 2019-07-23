@@ -4,3 +4,6 @@ venv/
 dokan/__pycache__/
 file_io_emulation/__pycache__/
 setting.ini
+dist/
+build/
+*.pyc
