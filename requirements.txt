@@ -1,0 +1,7 @@
+appdirs==1.4.3
+fs==2.4.8
+fs.smbfs==0.5.2
+pyasn1==0.4.5
+pysmb==1.1.27
+pytz==2019.1
+six==1.12.0
