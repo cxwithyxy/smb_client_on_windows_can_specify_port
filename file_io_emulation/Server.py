@@ -17,15 +17,13 @@ from fs.smbfs import smbfs
 class Server(SLT):
 
     files_tree = []
-    volume_name = "我虚拟出来的硬盘"
-    mount_point = "k"
+    volume_name = ""
+    mount_point = ""
     server_fs = None
     conf = None
 
     def init_files_tree(self):
-        conf = configparser.ConfigParser()
-        conf.read('setting.ini', encoding="utf8")
-          
+        conf = self.conf
         smb_fs = smbfs.SMBFS(
             conf['smb']['ip'],
             username = conf['smb']['username'],
@@ -35,7 +33,6 @@ class Server(SLT):
             direct_tcp = int(conf['smb']['direct_tcp'])
         )
         smb_fs = smb_fs.opendir(conf['smb']['enter_path'])
-        self.conf = conf
         self.server_fs = smb_fs
         # self.server_fs = MemoryFS()
         # self.server_fs.writetext('aaaattttttasdaa.txt','i am a')
@@ -52,7 +49,14 @@ class Server(SLT):
         # self.server_fs.writetext('qqq/qqq.txt','qqq')
         # self.server_fs.tree()
 
+    def conf_init(self):
+        self.conf = configparser.ConfigParser()
+        self.conf.read('setting.ini', encoding="utf8")
+        self.volume_name = self.conf['disk']['volume_name']
+        self.mount_point = self.conf['disk']['mount_point']
+
     def __Singleton_Init__(self):
+        self.conf_init()
         dokan_controller().set_options(self.mount_point)
         dokan_controller().set_operations({
             "ZwCreateFile": self.ZwCreateFile_handle,

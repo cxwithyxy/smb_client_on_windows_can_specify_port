@@ -135,18 +135,14 @@ class Builder(SLT.Singleton):
                 fields_for_set.append((field_name, now_dict[field_name]))
             now_class._fields_ = fields_for_set
 
-    def build_DOKAN_OPTIONS(self, mount_point):
+    def build_DOKAN_OPTIONS(self):
         """构建DOKAN_OPTIONS结构体
-
-        Args:
-            
-            mount_point: 挂载点, 如k, 代表挂载成k盘
         """
         dokan_options = DOKAN_OPTIONS()
         dokan_options.Version = 122
         dokan_options.ThreadCount = wintypes.USHORT(1)
         # dokan_options.Options = 32
-        dokan_options.MountPoint = wintypes.LPCWSTR(mount_point)
+        # dokan_options.MountPoint = wintypes.LPCWSTR(mount_point)
         # dokan_options.UNCName = c_wchar_p("")
         # dokan_options.Timeout = 5 * 1000
         # dokan_options.AllocationUnitSize = 4 * 1024

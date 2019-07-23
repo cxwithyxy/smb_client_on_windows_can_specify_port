@@ -5,3 +5,6 @@ passwd = 1
 port = 139
 direct_tcp = 0
 enter_path = /
+[disk]
+mount_point = k
+volume_name = 一个smb硬盘

@@ -29,7 +29,8 @@ class Controller(SLT):
             
             mount_point: 挂载点, 如k, 代表挂载成k盘
         """
-        self.dokan_options = dokan_structure.Builder().build_DOKAN_OPTIONS(mount_point)
+        self.dokan_options = dokan_structure.Builder().build_DOKAN_OPTIONS()
+        self.dokan_options.MountPoint = wintypes.LPCWSTR(mount_point)
 
     def dokan_start(self):
         """启动dokan
