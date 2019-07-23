@@ -49,7 +49,7 @@ pip uninstall fs.smbfs
 安装我修改后的 fs.smbfs
 
 ```
-pip install git+https://gitee.com/cxwithyxy/fs.smbfs.git
+pip install git+https://github.com/cxwithyxy/fs.smbfs.git
 ```
 
 #### 打包EXE
