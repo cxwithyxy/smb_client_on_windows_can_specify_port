@@ -78,11 +78,11 @@ class Server(SLT):
         self.init_files_tree()
     
     def SetAllocationSize_handle(self, *argus):
-        # print("SetAllocationSize_handle")
+        print("\n===== SetAllocationSize_handle =====\n")
         return ntstatus.STATUS_SUCCESS
 
     def FlushFileBuffers_handle(self, *argus):
-        # print("FlushFileBuffers_handle")
+        print("\n===== FlushFileBuffers_handle =====\n")
         return ntstatus.STATUS_SUCCESS
 
     def DeleteFile_handle(self, *argus):
@@ -99,9 +99,11 @@ class Server(SLT):
         return ntstatus.STATUS_SUCCESS
 
     def MoveFile_handle(self, *argus):
-        # print("MoveFile_handle")
         src_path = self.get_path_from_dokan_path(argus[0])
         dst_path = self.get_path_from_dokan_path(argus[1])
+        print("\n===== MoveFile_handle =====\n")
+        print(f"src_path: {src_path}")
+        print(f"dst_path: {dst_path}")
         is_exists = self.server_fs.exists(src_path)
         is_file = self.server_fs.isfile(src_path)
         if(not is_exists):
@@ -225,9 +227,13 @@ class Server(SLT):
         if(t_CreationDisposition == fileinfo.OPEN_EXISTING):
             if(check_is_exists()):
                 if(is_file):
-                    argus[7].contents.IsDirectory = c_ubyte(False)
+                    print_out()
+                    DokanFileInfo.IsDirectory = c_ubyte(False)
+                    DokanFileInfo.WriteToEndOfFile = c_ubyte(True)
+                    print(pointer(DokanFileInfo))
+                    print(DokanFileInfo.WriteToEndOfFile)
                 else:
-                    argus[7].contents.IsDirectory = c_ubyte(True)
+                    DokanFileInfo.IsDirectory = c_ubyte(True)
                 return ntstatus.STATUS_SUCCESS
             return ntstatus.STATUS_OBJECT_NAME_NOT_FOUND
         if(
@@ -242,7 +248,7 @@ class Server(SLT):
                 if(check_is_exists()):
                     return ntstatus.STATUS_OBJECT_NAME_COLLISION
                 self.server_fs.create(path)
-            # print_out()
+            
             return ntstatus.STATUS_SUCCESS
         if(t_CreationDisposition == fileinfo.CREATE_ALWAYS):
             return ntstatus.STATUS_SUCCESS
@@ -311,14 +317,16 @@ class Server(SLT):
         return ntstatus.STATUS_SUCCESS
 
     def WriteFile_handle(self, *argus):
-        # print("\n===== WriteFile_handle =====\n")
+        print("\n===== WriteFile_handle =====\n")
         file_path = self.get_path_from_dokan_path(argus[0])
         buffer_len = argus[2]
         write_len_buffer = argus[3]
         offset = argus[4]
-        # print(f'file_path: {file_path}')
-        # print(f"NumberOfBytesToWrite: {buffer_len}")
-        # print(f"Offset: {offset}")
+        DokanFileInfo = argus[5].contents
+        print(pointer(DokanFileInfo))
+        print(f'file_path: {file_path}')
+        print(f"NumberOfBytesToWrite: {buffer_len}")
+        print(f"Offset: {offset}")
         # print((argus[1]))
         # print(type(argus[1]))
         # print(argus[1].contents)
@@ -328,11 +336,13 @@ class Server(SLT):
         memmove(other_bytes, argus[1].contents, buffer_len)
         # print(other_bytes)
         byte_for_write = other_bytes
-        f = self.server_fs.open(file_path, "ab")
+        WriteToEndOfFile = DokanFileInfo.WriteToEndOfFile
+        print(f"WriteToEndOfFile: {WriteToEndOfFile}")
+        f = self.server_fs.open(file_path, "wb")
         f.seek(offset, 0)
         write_len = f.write(byte_for_write)
-        # print(f'数据大小: {len(byte_for_write)}')
-        # print(f'实际写入数量: {write_len}')
+        print(f'数据大小: {len(byte_for_write)}')
+        print(f'实际写入数量: {write_len}')
         f.close()
         memmove(write_len_buffer, pointer(c_ulong(write_len)), sizeof(c_ulong))
         return ntstatus.STATUS_SUCCESS
