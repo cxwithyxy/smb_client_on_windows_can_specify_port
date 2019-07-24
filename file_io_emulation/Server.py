@@ -206,15 +206,15 @@ class Server(SLT):
         def print_out():
             print(f"\n{time.strftime('%H:%M:%S', time.localtime())}===== ZwCreateFile_handle =====\n")
             print(path)
-            print("CreateDisposition: "+ str(hex(CreateDisposition)))
-            print("CreateOptions: " + str(hex(CreateOptions)))
-            print("DesiredAccess:" + str(hex(DesiredAccess)))
-            print("FileAttributes:" + str(hex(FileAttributes)))
+            # print("CreateDisposition: "+ str(hex(CreateDisposition)))
+            # print("CreateOptions: " + str(hex(CreateOptions)))
+            # print("DesiredAccess:" + str(hex(DesiredAccess)))
+            # print("FileAttributes:" + str(hex(FileAttributes)))
+            print(f"t_CreationDisposition: {str(hex(t_CreationDisposition))}")
             print(f"t_DesiredAccess: {str(hex(t_DesiredAccess))}")
             print(f"t_FileAttributesAndFlags: {str(hex(t_FileAttributesAndFlags))}")
-            print(f"t_CreationDisposition: {str(hex(t_CreationDisposition))}")
-        # print_out()
-        if(t_CreationDisposition == fileinfo.CREATE_NEW):
+        print_out()
+        if(t_CreationDisposition == fileinfo.OPEN_EXISTING):
             if(check_is_exists()):
                 if(is_file):
                     argus[7].contents.IsDirectory = c_ubyte(False)
@@ -222,7 +222,7 @@ class Server(SLT):
                     argus[7].contents.IsDirectory = c_ubyte(True)
                 return ntstatus.STATUS_SUCCESS
             return ntstatus.STATUS_OBJECT_NAME_NOT_FOUND
-        if(t_CreationDisposition == fileinfo.CREATE_ALWAYS):
+        if(t_CreationDisposition == fileinfo.CREATE_NEW or t_CreationDisposition == fileinfo.OPEN_ALWAYS):
             if(CreateOptions & fileinfo.FILE_DIRECTORY_FILE):
                 if(check_is_exists()):
                     return ntstatus.STATUS_OBJECT_NAME_COLLISION
@@ -231,9 +231,9 @@ class Server(SLT):
                 if(check_is_exists()):
                     return ntstatus.STATUS_OBJECT_NAME_COLLISION
                 self.server_fs.create(path)
-            print_out()
+            # print_out()
             return ntstatus.STATUS_SUCCESS
-        if(t_CreationDisposition == fileinfo.OPEN_EXISTING):
+        if(t_CreationDisposition == fileinfo.CREATE_ALWAYS):
             return ntstatus.STATUS_SUCCESS
         if(t_CreationDisposition == fileinfo.TRUNCATE_EXISTING):
             return ntstatus.STATUS_SUCCESS
