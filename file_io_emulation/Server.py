@@ -78,7 +78,7 @@ class Server(SLT):
         self.init_files_tree()
     
     def SetAllocationSize_handle(self, *argus):
-        print("SetAllocationSize_handle")
+        # print("SetAllocationSize_handle")
         return ntstatus.STATUS_SUCCESS
 
     def FlushFileBuffers_handle(self, *argus):
@@ -113,8 +113,8 @@ class Server(SLT):
         return ntstatus.STATUS_SUCCESS
 
     def GetFileSecurity_handle(self, *argus):
-        print("GetFileSecurity_handle")
-        print(argus[0])
+        # print("GetFileSecurity_handle")
+        # print(argus[0])
         return ntstatus.STATUS_NOT_IMPLEMENTED
 
     def GetFileInformation_handle(self, *argus):
@@ -230,7 +230,10 @@ class Server(SLT):
                     argus[7].contents.IsDirectory = c_ubyte(True)
                 return ntstatus.STATUS_SUCCESS
             return ntstatus.STATUS_OBJECT_NAME_NOT_FOUND
-        if(t_CreationDisposition == fileinfo.CREATE_NEW):
+        if(
+            t_CreationDisposition == fileinfo.CREATE_NEW
+            or t_CreationDisposition == fileinfo.OPEN_ALWAYS
+        ):
             if(CreateOptions & fileinfo.FILE_DIRECTORY_FILE):
                 if(check_is_exists()):
                     return ntstatus.STATUS_OBJECT_NAME_COLLISION
@@ -239,7 +242,7 @@ class Server(SLT):
                 if(check_is_exists()):
                     return ntstatus.STATUS_OBJECT_NAME_COLLISION
                 self.server_fs.create(path)
-            print_out()
+            # print_out()
             return ntstatus.STATUS_SUCCESS
         if(t_CreationDisposition == fileinfo.CREATE_ALWAYS):
             return ntstatus.STATUS_SUCCESS
