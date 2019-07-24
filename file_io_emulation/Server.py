@@ -72,10 +72,15 @@ class Server(SLT):
             "MoveFile": self.MoveFile_handle,
             "DeleteFile": self.DeleteFile_handle,
             "DeleteDirectory": self.DeleteFile_handle,
-            "FlushFileBuffers": self.FlushFileBuffers_handle
+            "FlushFileBuffers": self.FlushFileBuffers_handle,
+            "SetAllocationSize": self.SetAllocationSize_handle
         })
         self.init_files_tree()
     
+    def SetAllocationSize_handle(self, *argus):
+        print("SetAllocationSize_handle")
+        return ntstatus.STATUS_SUCCESS
+
     def FlushFileBuffers_handle(self, *argus):
         # print("FlushFileBuffers_handle")
         return ntstatus.STATUS_SUCCESS
@@ -182,6 +187,7 @@ class Server(SLT):
         ShareAccess = argus[4]
         CreateDisposition = argus[5]
         CreateOptions = argus[6]
+        DokanFileInfo = argus[7].contents
         
         DokanMapKernelToUserCreateFileFlags = dokan_controller().dokan_dll.DokanMapKernelToUserCreateFileFlags
         outDesiredAccess = wintypes.DWORD()
@@ -203,17 +209,19 @@ class Server(SLT):
         path = self.get_path_from_dokan_path(FileName)
         is_file = self.server_fs.isfile(path)
         check_is_exists = currying(self.server_fs.exists, path)
+
         def print_out():
             print(f"\n{time.strftime('%H:%M:%S', time.localtime())}===== ZwCreateFile_handle =====\n")
-            print(path)
+            print(f"path: {path}")
             # print("CreateDisposition: "+ str(hex(CreateDisposition)))
             # print("CreateOptions: " + str(hex(CreateOptions)))
             # print("DesiredAccess:" + str(hex(DesiredAccess)))
             # print("FileAttributes:" + str(hex(FileAttributes)))
+            print(f"is dir: {DokanFileInfo.IsDirectory}")
             print(f"t_CreationDisposition: {str(hex(t_CreationDisposition))}")
             print(f"t_DesiredAccess: {str(hex(t_DesiredAccess))}")
             print(f"t_FileAttributesAndFlags: {str(hex(t_FileAttributesAndFlags))}")
-        print_out()
+        # print_out()
         if(t_CreationDisposition == fileinfo.OPEN_EXISTING):
             if(check_is_exists()):
                 if(is_file):
@@ -222,7 +230,7 @@ class Server(SLT):
                     argus[7].contents.IsDirectory = c_ubyte(True)
                 return ntstatus.STATUS_SUCCESS
             return ntstatus.STATUS_OBJECT_NAME_NOT_FOUND
-        if(t_CreationDisposition == fileinfo.CREATE_NEW or t_CreationDisposition == fileinfo.OPEN_ALWAYS):
+        if(t_CreationDisposition == fileinfo.CREATE_NEW):
             if(CreateOptions & fileinfo.FILE_DIRECTORY_FILE):
                 if(check_is_exists()):
                     return ntstatus.STATUS_OBJECT_NAME_COLLISION
@@ -231,7 +239,7 @@ class Server(SLT):
                 if(check_is_exists()):
                     return ntstatus.STATUS_OBJECT_NAME_COLLISION
                 self.server_fs.create(path)
-            # print_out()
+            print_out()
             return ntstatus.STATUS_SUCCESS
         if(t_CreationDisposition == fileinfo.CREATE_ALWAYS):
             return ntstatus.STATUS_SUCCESS
