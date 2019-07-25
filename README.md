@@ -9,6 +9,11 @@ a SMB client can be specify port on Windows
 
 该版本存在各种 bug、用户体验差 ，并不能百分百保证正常运行
 
+已知问题:
+
+1. 新建的xlsx文档打开提示文件有损坏(或错误)
+2. 速度很慢，应该是单一线程的导致的问题
+
 
 
 ## 使用
@@ -51,6 +56,12 @@ pip uninstall fs.smbfs
 ```
 pip install git+https://github.com/cxwithyxy/fs.smbfs.git
 ```
+
+> 注：请自行配置代理服务已避免出现404等无法访问的相关问题，建议用环境变量的方式配置
+>
+> https_proxy=http://127.0.0.1:1080
+>
+> http_proxy=http://127.0.0.1:1080
 
 #### 打包EXE
 
