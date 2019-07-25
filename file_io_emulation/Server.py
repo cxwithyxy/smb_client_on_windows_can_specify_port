@@ -25,29 +25,29 @@ class Server(SLT):
     def init_files_tree(self):
         conf = self.conf
 
-        # smb_fs = smbfs.SMBFS(
-        #     conf['smb']['ip'],
-        #     username = conf['smb']['username'],
-        #     passwd = conf['smb']['passwd'],
-        #     timeout = 5,
-        #     port = int(conf['smb']['port']),
-        #     direct_tcp = int(conf['smb']['direct_tcp'])
-        # )
-        # self.server_fs = smb_fs.opendir(conf['smb']['enter_path'])
+        smb_fs = smbfs.SMBFS(
+            conf['smb']['ip'],
+            username = conf['smb']['username'],
+            passwd = conf['smb']['passwd'],
+            timeout = 5,
+            port = int(conf['smb']['port']),
+            direct_tcp = int(conf['smb']['direct_tcp'])
+        )
+        self.server_fs = smb_fs.opendir(conf['smb']['enter_path'])
 
-        self.server_fs = MemoryFS()
-        self.server_fs.writetext('aaaattttttasdaa.txt','i am a')
-        self.server_fs.writetext('b.txt','i am b')
-        self.server_fs.makedir("cxcxcx")
-        self.server_fs.writetext('cxcxcx/aaaa.txt','i am in dir cxcxcx , i am named aaaa')
-        bbbb = ""
-        for i in range(262144):
-            bbbb += str("ab")
-            pass
-        bbbb += "\n====== end =====\n"
-        self.server_fs.writetext('cxcxcx/bbbb.txt',bbbb)
-        self.server_fs.makedir("qqq")
-        self.server_fs.writetext('qqq/qqq.txt','qqq')
+        # self.server_fs = MemoryFS()
+        # self.server_fs.writetext('aaaattttttasdaa.txt','i am a')
+        # self.server_fs.writetext('b.txt','i am b')
+        # self.server_fs.makedir("cxcxcx")
+        # self.server_fs.writetext('cxcxcx/aaaa.txt','i am in dir cxcxcx , i am named aaaa')
+        # bbbb = ""
+        # for i in range(262144):
+        #     bbbb += str("ab")
+        #     pass
+        # bbbb += "\n====== end =====\n"
+        # self.server_fs.writetext('cxcxcx/bbbb.txt',bbbb)
+        # self.server_fs.makedir("qqq")
+        # self.server_fs.writetext('qqq/qqq.txt','qqq')
 
     def conf_init(self):
         self.conf = configparser.ConfigParser()
@@ -78,11 +78,11 @@ class Server(SLT):
         self.init_files_tree()
     
     def SetAllocationSize_handle(self, *argus):
-        print("\n===== SetAllocationSize_handle =====\n")
+        # print("\n===== SetAllocationSize_handle =====\n")
         return ntstatus.STATUS_SUCCESS
 
     def FlushFileBuffers_handle(self, *argus):
-        print("\n===== FlushFileBuffers_handle =====\n")
+        # print("\n===== FlushFileBuffers_handle =====\n")
         return ntstatus.STATUS_SUCCESS
 
     def DeleteFile_handle(self, *argus):
@@ -101,9 +101,9 @@ class Server(SLT):
     def MoveFile_handle(self, *argus):
         src_path = self.get_path_from_dokan_path(argus[0])
         dst_path = self.get_path_from_dokan_path(argus[1])
-        print("\n===== MoveFile_handle =====\n")
-        print(f"src_path: {src_path}")
-        print(f"dst_path: {dst_path}")
+        # print("\n===== MoveFile_handle =====\n")
+        # print(f"src_path: {src_path}")
+        # print(f"dst_path: {dst_path}")
         is_exists = self.server_fs.exists(src_path)
         is_file = self.server_fs.isfile(src_path)
         if(not is_exists):
@@ -227,11 +227,11 @@ class Server(SLT):
         if(t_CreationDisposition == fileinfo.OPEN_EXISTING):
             if(check_is_exists()):
                 if(is_file):
-                    print_out()
                     DokanFileInfo.IsDirectory = c_ubyte(False)
-                    DokanFileInfo.WriteToEndOfFile = c_ubyte(True)
-                    print(pointer(DokanFileInfo))
-                    print(DokanFileInfo.WriteToEndOfFile)
+                    # DokanFileInfo.WriteToEndOfFile = c_ubyte(True)
+                    # DokanFileInfo.Context = c_ulonglong(6727)
+                    # print(DokanFileInfo.Context)
+                    # print(DokanFileInfo.WriteToEndOfFile)
                 else:
                     DokanFileInfo.IsDirectory = c_ubyte(True)
                 return ntstatus.STATUS_SUCCESS
@@ -317,16 +317,11 @@ class Server(SLT):
         return ntstatus.STATUS_SUCCESS
 
     def WriteFile_handle(self, *argus):
-        print("\n===== WriteFile_handle =====\n")
         file_path = self.get_path_from_dokan_path(argus[0])
         buffer_len = argus[2]
         write_len_buffer = argus[3]
         offset = argus[4]
         DokanFileInfo = argus[5].contents
-        print(pointer(DokanFileInfo))
-        print(f'file_path: {file_path}')
-        print(f"NumberOfBytesToWrite: {buffer_len}")
-        print(f"Offset: {offset}")
         # print((argus[1]))
         # print(type(argus[1]))
         # print(argus[1].contents)
@@ -337,14 +332,18 @@ class Server(SLT):
         # print(other_bytes)
         byte_for_write = other_bytes
         WriteToEndOfFile = DokanFileInfo.WriteToEndOfFile
-        print(f"WriteToEndOfFile: {WriteToEndOfFile}")
-        f = self.server_fs.open(file_path, "wb")
+        f = self.server_fs.open(file_path, "ab")
         f.seek(offset, 0)
         write_len = f.write(byte_for_write)
-        print(f'数据大小: {len(byte_for_write)}')
-        print(f'实际写入数量: {write_len}')
         f.close()
         memmove(write_len_buffer, pointer(c_ulong(write_len)), sizeof(c_ulong))
+        # if(WriteToEndOfFile):
+        #     print(f'file_path: {file_path}')
+        #     print(f"NumberOfBytesToWrite: {buffer_len}")
+        #     print(f"Offset: {offset}")
+        #     print(f"WriteToEndOfFile: {WriteToEndOfFile}")
+        #     print(f'数据大小: {len(byte_for_write)}')
+        #     print(f'实际写入数量: {write_len}')
         return ntstatus.STATUS_SUCCESS
 
     def start(self):
