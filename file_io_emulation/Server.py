@@ -24,6 +24,7 @@ class Server(SLT):
 
     def init_files_tree(self):
         conf = self.conf
+
         smb_fs = smbfs.SMBFS(
             conf['smb']['ip'],
             username = conf['smb']['username'],
@@ -32,8 +33,8 @@ class Server(SLT):
             port = int(conf['smb']['port']),
             direct_tcp = int(conf['smb']['direct_tcp'])
         )
-        smb_fs = smb_fs.opendir(conf['smb']['enter_path'])
-        self.server_fs = smb_fs
+        self.server_fs = smb_fs.opendir(conf['smb']['enter_path'])
+
         # self.server_fs = MemoryFS()
         # self.server_fs.writetext('aaaattttttasdaa.txt','i am a')
         # self.server_fs.writetext('b.txt','i am b')
@@ -47,7 +48,6 @@ class Server(SLT):
         # self.server_fs.writetext('cxcxcx/bbbb.txt',bbbb)
         # self.server_fs.makedir("qqq")
         # self.server_fs.writetext('qqq/qqq.txt','qqq')
-        # self.server_fs.tree()
 
     def conf_init(self):
         self.conf = configparser.ConfigParser()
@@ -72,12 +72,17 @@ class Server(SLT):
             "MoveFile": self.MoveFile_handle,
             "DeleteFile": self.DeleteFile_handle,
             "DeleteDirectory": self.DeleteFile_handle,
-            "FlushFileBuffers": self.FlushFileBuffers_handle
+            "FlushFileBuffers": self.FlushFileBuffers_handle,
+            "SetAllocationSize": self.SetAllocationSize_handle
         })
         self.init_files_tree()
     
+    def SetAllocationSize_handle(self, *argus):
+        # print("\n===== SetAllocationSize_handle =====\n")
+        return ntstatus.STATUS_SUCCESS
+
     def FlushFileBuffers_handle(self, *argus):
-        # print("FlushFileBuffers_handle")
+        # print("\n===== FlushFileBuffers_handle =====\n")
         return ntstatus.STATUS_SUCCESS
 
     def DeleteFile_handle(self, *argus):
@@ -94,9 +99,11 @@ class Server(SLT):
         return ntstatus.STATUS_SUCCESS
 
     def MoveFile_handle(self, *argus):
-        # print("MoveFile_handle")
         src_path = self.get_path_from_dokan_path(argus[0])
         dst_path = self.get_path_from_dokan_path(argus[1])
+        # print("\n===== MoveFile_handle =====\n")
+        # print(f"src_path: {src_path}")
+        # print(f"dst_path: {dst_path}")
         is_exists = self.server_fs.exists(src_path)
         is_file = self.server_fs.isfile(src_path)
         if(not is_exists):
@@ -109,33 +116,34 @@ class Server(SLT):
 
     def GetFileSecurity_handle(self, *argus):
         # print("GetFileSecurity_handle")
+        # print(argus[0])
         return ntstatus.STATUS_NOT_IMPLEMENTED
 
     def GetFileInformation_handle(self, *argus):
         path = self.get_path_from_dokan_path(argus[0])
+        # print("GetFileInformation_handle")
+        # print(path)
         if(not self.server_fs.exists(path)):
             return ntstatus.STATUS_SUCCESS
         filesize = self.server_fs.getsize(path)
         if(self.server_fs.isfile(path)):
-            argus[1].contents.dwFileAttributes = 128
+            argus[1].contents.dwFileAttributes = wintypes.DWORD(32)
         else:
             argus[2].contents.IsDirectory = c_ubyte(True)
-            argus[1].contents.dwFileAttributes = 16
+            argus[1].contents.dwFileAttributes = wintypes.DWORD(16)
         argus[1].contents.ftCreationTime = wintypes.FILETIME()
         argus[1].contents.ftLastAccessTime = wintypes.FILETIME()
         argus[1].contents.ftLastWriteTime = wintypes.FILETIME()
-        argus[1].contents.dwVolumeSerialNumber = wintypes.DWORD(0)
         argus[1].contents.nFileSizeHigh = wintypes.DWORD(0)
         argus[1].contents.nFileSizeLow = wintypes.DWORD(filesize)
-        argus[1].contents.nNumberOfLinks = wintypes.DWORD(1)
-        argus[1].contents.nFileIndexHigh = wintypes.DWORD(99)
-        argus[1].contents.nFileIndexLow = wintypes.DWORD(99)
         return ntstatus.STATUS_SUCCESS
 
     def FindFiles_handle(self, *argus):
         path = self.get_path_from_dokan_path(argus[0])
         # print("\n===== FindFiles_handle =====\n")
         # print("FindFilesWithPattern: " + path)
+        if(not self.server_fs.exists(path)):
+            return ntstatus.STATUS_OBJECTID_NOT_FOUND
         for walk_path in self.server_fs.walk.dirs(path, max_depth = 1):
             if(self.server_fs.exists(walk_path)):
                 info = self.server_fs.getinfo(walk_path)
@@ -148,7 +156,7 @@ class Server(SLT):
                 info = self.server_fs.getinfo(walk_path)
                 filesize = self.server_fs.getsize(walk_path)
                 find_data = wintypes.WIN32_FIND_DATAW()
-                find_data.dwFileAttributes = 128
+                find_data.dwFileAttributes = 32
                 find_data.cFileName = info.name
                 if(len(info.name) >= 11):
                     info_cut = info.name.split(".")
@@ -181,24 +189,57 @@ class Server(SLT):
         ShareAccess = argus[4]
         CreateDisposition = argus[5]
         CreateOptions = argus[6]
+        DokanFileInfo = argus[7].contents
+        
+        DokanMapKernelToUserCreateFileFlags = dokan_controller().dokan_dll.DokanMapKernelToUserCreateFileFlags
+        outDesiredAccess = wintypes.DWORD()
+        outFileAttributesAndFlags = wintypes.DWORD()
+        outCreationDisposition = wintypes.DWORD()
+        DokanMapKernelToUserCreateFileFlags(
+            DesiredAccess,
+            FileAttributes,
+            CreateOptions,
+            CreateDisposition,
+            pointer(outDesiredAccess),
+            pointer(outFileAttributesAndFlags),
+            pointer(outCreationDisposition)
+        )
+        t_DesiredAccess = outDesiredAccess.value
+        t_FileAttributesAndFlags = outFileAttributesAndFlags.value
+        t_CreationDisposition = outCreationDisposition.value
+
         path = self.get_path_from_dokan_path(FileName)
         is_file = self.server_fs.isfile(path)
         check_is_exists = currying(self.server_fs.exists, path)
-        # def print_out():
-        #     print(f"\n{time.strftime('%H:%M:%S', time.localtime())}===== ZwCreateFile_handle =====\n")
-        #     print(path)
-        #     print("CreateDisposition: "+ str(hex(CreateDisposition)))
-        #     print("CreateOptions: " + str(hex(CreateOptions)))
-        #     print("DesiredAccess:" + str(hex(DesiredAccess)))
-        if(CreateDisposition == fileinfo.CREATE_NEW):
+
+        def print_out():
+            print(f"\n{time.strftime('%H:%M:%S', time.localtime())}===== ZwCreateFile_handle =====\n")
+            print(f"path: {path}")
+            # print("CreateDisposition: "+ str(hex(CreateDisposition)))
+            # print("CreateOptions: " + str(hex(CreateOptions)))
+            # print("DesiredAccess:" + str(hex(DesiredAccess)))
+            # print("FileAttributes:" + str(hex(FileAttributes)))
+            print(f"is dir: {DokanFileInfo.IsDirectory}")
+            print(f"t_CreationDisposition: {str(hex(t_CreationDisposition))}")
+            print(f"t_DesiredAccess: {str(hex(t_DesiredAccess))}")
+            print(f"t_FileAttributesAndFlags: {str(hex(t_FileAttributesAndFlags))}")
+        # print_out()
+        if(t_CreationDisposition == fileinfo.OPEN_EXISTING):
             if(check_is_exists()):
                 if(is_file):
-                    argus[7].contents.IsDirectory = c_ubyte(False)
+                    DokanFileInfo.IsDirectory = c_ubyte(False)
+                    # DokanFileInfo.WriteToEndOfFile = c_ubyte(True)
+                    # DokanFileInfo.Context = c_ulonglong(6727)
+                    # print(DokanFileInfo.Context)
+                    # print(DokanFileInfo.WriteToEndOfFile)
                 else:
-                    argus[7].contents.IsDirectory = c_ubyte(True)
+                    DokanFileInfo.IsDirectory = c_ubyte(True)
                 return ntstatus.STATUS_SUCCESS
             return ntstatus.STATUS_OBJECT_NAME_NOT_FOUND
-        if(CreateDisposition == fileinfo.CREATE_ALWAYS):
+        if(
+            t_CreationDisposition == fileinfo.CREATE_NEW
+            or t_CreationDisposition == fileinfo.OPEN_ALWAYS
+        ):
             if(CreateOptions & fileinfo.FILE_DIRECTORY_FILE):
                 if(check_is_exists()):
                     return ntstatus.STATUS_OBJECT_NAME_COLLISION
@@ -207,13 +248,12 @@ class Server(SLT):
                 if(check_is_exists()):
                     return ntstatus.STATUS_OBJECT_NAME_COLLISION
                 self.server_fs.create(path)
+            
             return ntstatus.STATUS_SUCCESS
-        if(CreateDisposition == fileinfo.OPEN_EXISTING):
+        if(t_CreationDisposition == fileinfo.CREATE_ALWAYS):
             return ntstatus.STATUS_SUCCESS
-        if(CreateDisposition == fileinfo.TRUNCATE_EXISTING):
+        if(t_CreationDisposition == fileinfo.TRUNCATE_EXISTING):
             return ntstatus.STATUS_SUCCESS
-        
-
     
     def Cleanup_handle(self, *argus):
         file_path = self.get_path_from_dokan_path(argus[0])
@@ -277,14 +317,11 @@ class Server(SLT):
         return ntstatus.STATUS_SUCCESS
 
     def WriteFile_handle(self, *argus):
-        # print("\n===== WriteFile_handle =====\n")
         file_path = self.get_path_from_dokan_path(argus[0])
         buffer_len = argus[2]
         write_len_buffer = argus[3]
         offset = argus[4]
-        # print(f'file_path: {file_path}')
-        # print(f"NumberOfBytesToWrite: {buffer_len}")
-        # print(f"Offset: {offset}")
+        DokanFileInfo = argus[5].contents
         # print((argus[1]))
         # print(type(argus[1]))
         # print(argus[1].contents)
@@ -294,13 +331,19 @@ class Server(SLT):
         memmove(other_bytes, argus[1].contents, buffer_len)
         # print(other_bytes)
         byte_for_write = other_bytes
+        WriteToEndOfFile = DokanFileInfo.WriteToEndOfFile
         f = self.server_fs.open(file_path, "ab")
         f.seek(offset, 0)
         write_len = f.write(byte_for_write)
-        # print(f'数据大小: {len(byte_for_write)}')
-        # print(f'实际写入数量: {write_len}')
         f.close()
         memmove(write_len_buffer, pointer(c_ulong(write_len)), sizeof(c_ulong))
+        # if(WriteToEndOfFile):
+        #     print(f'file_path: {file_path}')
+        #     print(f"NumberOfBytesToWrite: {buffer_len}")
+        #     print(f"Offset: {offset}")
+        #     print(f"WriteToEndOfFile: {WriteToEndOfFile}")
+        #     print(f'数据大小: {len(byte_for_write)}')
+        #     print(f'实际写入数量: {write_len}')
         return ntstatus.STATUS_SUCCESS
 
     def start(self):
