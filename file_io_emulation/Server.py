@@ -12,42 +12,46 @@ import time
 from my_lib.Config_controller.Config_controller import Config_controller as ConfC
 from fs.smbfs import smbfs
 import threading
+from file_io_emulation.Smb_client import Smb_client
 
 class Server(SLT):
 
-    files_tree = []
     volume_name = ""
     mount_point = ""
     server_fs = None
     conf: ConfC
     thread_lock: threading.RLock
 
+    def get_fs(self):
+        return self.server_fs.get_fs()
+
     def init_files_tree(self):
-        conf = self.conf
-        conf.cd('smb')
-        smb_fs = smbfs.SMBFS(
-            conf.get('ip'),
-            username = conf.get('username'),
-            passwd = conf.get('passwd'),
-            timeout = 5,
-            port = int(conf.get('port')),
-            direct_tcp = int(conf.get('direct_tcp'))
-        )
-        self.server_fs = smb_fs.opendir(conf.get('enter_path'))
+        self.server_fs = Smb_client()
+        # conf = self.conf
+        # conf.cd('smb')
+        # smb_fs = smbfs.SMBFS(
+        #     conf.get('ip'),
+        #     username = conf.get('username'),
+        #     passwd = conf.get('passwd'),
+        #     timeout = 5,
+        #     port = int(conf.get('port')),
+        #     direct_tcp = int(conf.get('direct_tcp'))
+        # )
+        # self.server_fs = smb_fs.opendir(conf.get('enter_path'))
 
         # self.server_fs = MemoryFS()
-        # self.server_fs.writetext('aaaattttttasdaa.txt','i am a')
-        # self.server_fs.writetext('b.txt','i am b')
-        # self.server_fs.makedir("cxcxcx")
-        # self.server_fs.writetext('cxcxcx/aaaa.txt','i am in dir cxcxcx , i am named aaaa')
+        # self.get_fs().writetext('aaaattttttasdaa.txt','i am a')
+        # self.get_fs().writetext('b.txt','i am b')
+        # self.get_fs().makedir("cxcxcx")
+        # self.get_fs().writetext('cxcxcx/aaaa.txt','i am in dir cxcxcx , i am named aaaa')
         # bbbb = ""
         # for i in range(262144):
         #     bbbb += str("ab")
         #     pass
         # bbbb += "\n====== end =====\n"
-        # self.server_fs.writetext('cxcxcx/bbbb.txt',bbbb)
-        # self.server_fs.makedir("qqq")
-        # self.server_fs.writetext('qqq/qqq.txt','qqq')
+        # self.get_fs().writetext('cxcxcx/bbbb.txt',bbbb)
+        # self.get_fs().makedir("qqq")
+        # self.get_fs().writetext('qqq/qqq.txt','qqq')
 
     def conf_init(self):
         self.conf = ConfC('setting.ini')
@@ -102,12 +106,12 @@ class Server(SLT):
         # print("DeleteFile_handle")
         # print(argus[0])
         file_path = self.get_path_from_dokan_path(argus[0])
-        is_file = self.server_fs.isfile(file_path)
+        is_file = self.get_fs().isfile(file_path)
         if(argus[1].contents.DeleteOnClose):
             # print(file_path)
             # print(argus[1].contents.DeleteOnClose)
             if(not is_file):
-                if(not self.server_fs.isempty(file_path)):
+                if(not self.get_fs().isempty(file_path)):
                     return ntstatus.STATUS_DIRECTORY_NOT_EMPTY
         return ntstatus.STATUS_SUCCESS
 
@@ -118,14 +122,14 @@ class Server(SLT):
         # print("\n===== MoveFile_handle =====\n")
         # print(f"src_path: {src_path}")
         # print(f"dst_path: {dst_path}")
-        is_exists = self.server_fs.exists(src_path)
-        is_file = self.server_fs.isfile(src_path)
+        is_exists = self.get_fs().exists(src_path)
+        is_file = self.get_fs().isfile(src_path)
         if(not is_exists):
             return ntstatus.STATUS_OBJECTID_NOT_FOUND
         if(is_file):
-            self.server_fs.move(src_path, dst_path, argus[2])
+            self.get_fs().move(src_path, dst_path, argus[2])
         else:
-            self.server_fs.movedir(src_path, dst_path, True)
+            self.get_fs().movedir(src_path, dst_path, True)
         return ntstatus.STATUS_SUCCESS
 
     @operations_wrapper
@@ -139,10 +143,10 @@ class Server(SLT):
         path = self.get_path_from_dokan_path(argus[0])
         # print("GetFileInformation_handle")
         # print(path)
-        if(not self.server_fs.exists(path)):
+        if(not self.get_fs().exists(path)):
             return ntstatus.STATUS_SUCCESS
-        filesize = self.server_fs.getsize(path)
-        if(self.server_fs.isfile(path)):
+        filesize = self.get_fs().getsize(path)
+        if(self.get_fs().isfile(path)):
             argus[1].contents.dwFileAttributes = wintypes.DWORD(32)
         else:
             argus[2].contents.IsDirectory = c_ubyte(True)
@@ -159,19 +163,19 @@ class Server(SLT):
         path = self.get_path_from_dokan_path(argus[0])
         # print("\n===== FindFiles_handle =====\n")
         # print("FindFilesWithPattern: " + path)
-        if(not self.server_fs.exists(path)):
+        if(not self.get_fs().exists(path)):
             return ntstatus.STATUS_OBJECTID_NOT_FOUND
-        for walk_path in self.server_fs.walk.dirs(path, max_depth = 1):
-            if(self.server_fs.exists(walk_path)):
-                info = self.server_fs.getinfo(walk_path)
+        for walk_path in self.get_fs().walk.dirs(path, max_depth = 1):
+            if(self.get_fs().exists(walk_path)):
+                info = self.get_fs().getinfo(walk_path)
                 find_data = wintypes.WIN32_FIND_DATAW()
                 find_data.dwFileAttributes = 16
                 find_data.cFileName = info.name
                 argus[1](pointer(find_data), argus[2])
-        for walk_path in self.server_fs.walk.files(path, max_depth = 1):
-            if(self.server_fs.exists(walk_path)):
-                info = self.server_fs.getinfo(walk_path)
-                filesize = self.server_fs.getsize(walk_path)
+        for walk_path in self.get_fs().walk.files(path, max_depth = 1):
+            if(self.get_fs().exists(walk_path)):
+                info = self.get_fs().getinfo(walk_path)
+                filesize = self.get_fs().getsize(walk_path)
                 find_data = wintypes.WIN32_FIND_DATAW()
                 find_data.dwFileAttributes = 32
                 find_data.cFileName = info.name
@@ -227,8 +231,8 @@ class Server(SLT):
         t_CreationDisposition = outCreationDisposition.value
 
         path = self.get_path_from_dokan_path(FileName)
-        is_file = self.server_fs.isfile(path)
-        check_is_exists = currying(self.server_fs.exists, path)
+        is_file = self.get_fs().isfile(path)
+        check_is_exists = currying(self.get_fs().exists, path)
 
         def print_out():
             print(f"\n{time.strftime('%H:%M:%S', time.localtime())}===== ZwCreateFile_handle =====\n")
@@ -261,11 +265,11 @@ class Server(SLT):
             if(CreateOptions & fileinfo.FILE_DIRECTORY_FILE):
                 if(check_is_exists()):
                     return ntstatus.STATUS_OBJECT_NAME_COLLISION
-                self.server_fs.makedir(path)
+                self.get_fs().makedir(path)
             if(CreateOptions & fileinfo.FILE_NON_DIRECTORY_FILE):
                 if(check_is_exists()):
                     return ntstatus.STATUS_OBJECT_NAME_COLLISION
-                self.server_fs.create(path)
+                self.get_fs().create(path)
             
             return ntstatus.STATUS_SUCCESS
         if(t_CreationDisposition == fileinfo.CREATE_ALWAYS):
@@ -276,16 +280,16 @@ class Server(SLT):
     @operations_wrapper
     def Cleanup_handle(self, *argus):
         file_path = self.get_path_from_dokan_path(argus[0])
-        is_file = self.server_fs.isfile(file_path)
+        is_file = self.get_fs().isfile(file_path)
         if(argus[1].contents.DeleteOnClose):
             # print(file_path)
             # print(argus[1].contents.DeleteOnClose)
             if(is_file):
-                self.server_fs.remove(file_path)
+                self.get_fs().remove(file_path)
             else:
-                if(not self.server_fs.isempty(file_path)):
+                if(not self.get_fs().isempty(file_path)):
                     return ntstatus.STATUS_DIRECTORY_NOT_EMPTY
-                self.server_fs.removedir(file_path)
+                self.get_fs().removedir(file_path)
         return ntstatus.STATUS_SUCCESS
 
     @operations_wrapper
@@ -320,11 +324,11 @@ class Server(SLT):
         # print(F'file_path: {file_path}')
         # print(F'buffer_len: {buffer_len}')
         # print(F'offset: {offset}')
-        if(self.server_fs.exists(file_path)):
-            filesize = self.server_fs.getsize(file_path)
+        if(self.get_fs().exists(file_path)):
+            filesize = self.get_fs().getsize(file_path)
             # if(offset >= filesize):
             #     return ntstatus.STATUS_SUCCESS
-            f = self.server_fs.open(file_path, "rb")
+            f = self.get_fs().open(file_path, "rb")
             f.seek(offset, 0)
             read_out = f.read(buffer_len)
             read_out_len = len(read_out)
@@ -356,7 +360,7 @@ class Server(SLT):
         # print(other_bytes)
         byte_for_write = other_bytes
         WriteToEndOfFile = DokanFileInfo.WriteToEndOfFile
-        f = self.server_fs.open(file_path, "ab")
+        f = self.get_fs().open(file_path, "ab")
         f.seek(offset, 0)
         write_len = f.write(byte_for_write)
         f.close()
