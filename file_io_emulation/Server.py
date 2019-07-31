@@ -18,6 +18,7 @@ class Server(SLT):
 
     volume_name = ""
     mount_point = ""
+    thread_count = 1
     server_fs = None
     conf: ConfC
     thread_lock: threading.RLock
@@ -58,12 +59,15 @@ class Server(SLT):
         self.conf.cd("disk")
         self.volume_name = self.conf.get('volume_name')
         self.mount_point = self.conf.get('mount_point')
+        self.conf.cd("smb")
+        self.thread_count = int(self.conf.get("thread"))
 
     def __Singleton_Init__(self):
+        self.conf_init()
+        
         self.thread_lock = threading.RLock()
         
-        self.conf_init()
-        dokan_controller().set_options(self.mount_point)
+        dokan_controller().set_options(self.mount_point, self.thread_count)
         dokan_controller().set_operations({
             "ZwCreateFile": self.ZwCreateFile_handle,
             "Cleanup": self.Cleanup_handle,
