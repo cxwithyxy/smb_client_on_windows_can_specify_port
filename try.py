@@ -14,7 +14,7 @@ smbc = Smb_client()
 def dododo():
     
     while True:
-        time.sleep(1)
+        time.sleep(random.random())
         # lock.acquire()
         print(f"{threading.currentThread().ident}: {smbc.get_fs().getinfo('222.txt')}")
         # lock.release()

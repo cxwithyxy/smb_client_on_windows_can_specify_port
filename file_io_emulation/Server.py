@@ -24,7 +24,10 @@ class Server(SLT):
     thread_lock: threading.RLock
 
     def get_fs(self):
-        return self.server_fs.get_fs()
+        self.thread_lock.acquire()
+        return_val = self.server_fs.get_fs()
+        self.thread_lock.release()
+        return return_val
 
     def init_files_tree(self):
         self.server_fs = Smb_client()
@@ -87,25 +90,16 @@ class Server(SLT):
         })
         self.init_files_tree()
     
-    def operations_wrapper(func):
-        def wrapper(self, *argus):
-            self.thread_lock.acquire()
-            return_value = func(self, *argus)
-            self.thread_lock.release()
-            return return_value
-        return wrapper
+    
 
-    @operations_wrapper
     def SetAllocationSize_handle(self, *argus):
         # print("\n===== SetAllocationSize_handle =====\n")
         return ntstatus.STATUS_SUCCESS
 
-    @operations_wrapper
     def FlushFileBuffers_handle(self, *argus):
         # print("\n===== FlushFileBuffers_handle =====\n")
         return ntstatus.STATUS_SUCCESS
 
-    @operations_wrapper
     def DeleteFile_handle(self, *argus):
         # print("DeleteFile_handle")
         # print(argus[0])
@@ -119,7 +113,6 @@ class Server(SLT):
                     return ntstatus.STATUS_DIRECTORY_NOT_EMPTY
         return ntstatus.STATUS_SUCCESS
 
-    @operations_wrapper
     def MoveFile_handle(self, *argus):
         src_path = self.get_path_from_dokan_path(argus[0])
         dst_path = self.get_path_from_dokan_path(argus[1])
@@ -136,13 +129,11 @@ class Server(SLT):
             self.get_fs().movedir(src_path, dst_path, True)
         return ntstatus.STATUS_SUCCESS
 
-    @operations_wrapper
     def GetFileSecurity_handle(self, *argus):
         # print("GetFileSecurity_handle")
         # print(argus[0])
         return ntstatus.STATUS_NOT_IMPLEMENTED
 
-    @operations_wrapper
     def GetFileInformation_handle(self, *argus):
         path = self.get_path_from_dokan_path(argus[0])
         # print("GetFileInformation_handle")
@@ -162,7 +153,6 @@ class Server(SLT):
         argus[1].contents.nFileSizeLow = wintypes.DWORD(filesize)
         return ntstatus.STATUS_SUCCESS
 
-    @operations_wrapper
     def FindFiles_handle(self, *argus):
         path = self.get_path_from_dokan_path(argus[0])
         # print("\n===== FindFiles_handle =====\n")
@@ -203,7 +193,6 @@ class Server(SLT):
         path = path.replace("\\", "/")
         return path
     
-    @operations_wrapper
     def ZwCreateFile_handle(self, *argus):
         '''
         https://docs.microsoft.com/zh-cn/windows/win32/api/winternl/nf-winternl-ntcreatefile
@@ -281,7 +270,6 @@ class Server(SLT):
         if(t_CreationDisposition == fileinfo.TRUNCATE_EXISTING):
             return ntstatus.STATUS_SUCCESS
     
-    @operations_wrapper
     def Cleanup_handle(self, *argus):
         file_path = self.get_path_from_dokan_path(argus[0])
         is_file = self.get_fs().isfile(file_path)
@@ -296,12 +284,10 @@ class Server(SLT):
                 self.get_fs().removedir(file_path)
         return ntstatus.STATUS_SUCCESS
 
-    @operations_wrapper
     def CloseFile_handle(self, *argus):
         # print("CloseFile_handle")
         return ntstatus.STATUS_SUCCESS
 
-    @operations_wrapper
     def GetDiskFreeSpace_handle(self, *argus):
         # print("GetDiskFreeSpace_handle")
         free = 20 * 1024 * 1024 * 1024
@@ -311,14 +297,12 @@ class Server(SLT):
         argus[2][0] = c_ulonglong(free)
         return ntstatus.STATUS_SUCCESS
 
-    @operations_wrapper
     def GetVolumeInformation_handle(self, *argus):
         # print("GetVolumeInformation_handle")
         sss = wintypes.LPWSTR(self.volume_name)
         memmove(argus[0], sss, len(sss.value) * 2)
         return ntstatus.STATUS_SUCCESS
 
-    @operations_wrapper
     def ReadFile_handle(self, *argus):
         file_path = self.get_path_from_dokan_path(argus[0])
         buffer = argus[1].contents
@@ -347,7 +331,6 @@ class Server(SLT):
             memmove(read_len_buffer, pointer(c_ulong(read_out_len)), sizeof(c_ulong))
         return ntstatus.STATUS_SUCCESS
 
-    @operations_wrapper
     def WriteFile_handle(self, *argus):
         file_path = self.get_path_from_dokan_path(argus[0])
         buffer_len = argus[2]
