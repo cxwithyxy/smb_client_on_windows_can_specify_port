@@ -9,7 +9,7 @@ import dokan.ntstatus as ntstatus
 import dokan.fileinfo as fileinfo
 from functools import partial as currying
 import time
-import configparser
+from my_lib.Config_controller.Config_controller import Config_controller as ConfC
 from fs.smbfs import smbfs
  
 
@@ -20,20 +20,20 @@ class Server(SLT):
     volume_name = ""
     mount_point = ""
     server_fs = None
-    conf = None
+    conf: ConfC
 
     def init_files_tree(self):
         conf = self.conf
-
+        conf.cd('smb')
         smb_fs = smbfs.SMBFS(
-            conf['smb']['ip'],
-            username = conf['smb']['username'],
-            passwd = conf['smb']['passwd'],
+            conf.get('ip'),
+            username = conf.get('username'),
+            passwd = conf.get('passwd'),
             timeout = 5,
-            port = int(conf['smb']['port']),
-            direct_tcp = int(conf['smb']['direct_tcp'])
+            port = int(conf.get('port')),
+            direct_tcp = int(conf.get('direct_tcp'))
         )
-        self.server_fs = smb_fs.opendir(conf['smb']['enter_path'])
+        self.server_fs = smb_fs.opendir(conf.get('enter_path'))
 
         # self.server_fs = MemoryFS()
         # self.server_fs.writetext('aaaattttttasdaa.txt','i am a')
@@ -50,10 +50,10 @@ class Server(SLT):
         # self.server_fs.writetext('qqq/qqq.txt','qqq')
 
     def conf_init(self):
-        self.conf = configparser.ConfigParser()
-        self.conf.read('setting.ini', encoding="utf8")
-        self.volume_name = self.conf['disk']['volume_name']
-        self.mount_point = self.conf['disk']['mount_point']
+        self.conf = ConfC('setting.ini')
+        self.conf.cd("disk")
+        self.volume_name = self.conf.get('volume_name')
+        self.mount_point = self.conf.get('mount_point')
 
     def __Singleton_Init__(self):
         self.conf_init()
