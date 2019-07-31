@@ -140,7 +140,7 @@ class Builder(SLT.Singleton):
         """
         dokan_options = DOKAN_OPTIONS()
         dokan_options.Version = 122
-        dokan_options.ThreadCount = wintypes.USHORT(1)
+        dokan_options.ThreadCount = wintypes.USHORT(4)
         # dokan_options.Options = 32
         # dokan_options.MountPoint = wintypes.LPCWSTR(mount_point)
         # dokan_options.UNCName = c_wchar_p("")

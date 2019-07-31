@@ -1,23 +1,41 @@
-# from file_io_emulation.Server import Server as FS_server
-# import fs
-# from fs.smbfs import smbfs
-# import configparser
+from fs.smbfs import smbfs
+from my_lib.Config_controller.Config_controller import Config_controller as ConfC
+import time
+import threading
+import random
 
-# conf = configparser.ConfigParser()
-# conf.read('setting.ini', encoding="utf8")
-    
-# smb_fs = smbfs.SMBFS(
-#     conf['smb']['ip'],
-#     username = conf['smb']['username'],
-#     passwd = conf['smb']['passwd'],
-#     timeout = 5,
-#     port = int(conf['smb']['port']),
-#     direct_tcp = int(conf['smb']['direct_tcp'])
-# )
-# smb_fs = smb_fs.opendir(conf['smb']['enter_path'])
-# smb_fs.tree()
-# # print(smb_fs)
-# print(smb_fs.listdir('/'))
+conf = ConfC('setting.ini')
+conf.cd('smb')
+smb_fs = smbfs.SMBFS(
+    conf.get('ip'),
+    username = conf.get('username'),
+    passwd = conf.get('passwd'),
+    timeout = 5,
+    port = int(conf.get('port')),
+    direct_tcp = int(conf.get('direct_tcp'))
+)
+server_fs = smb_fs.opendir(conf.get('enter_path'))
 
-# for walk_path in smb_fs.walk.dirs(conf['smb']['enter_path'], max_depth = 1):
-#     print(walk_path)
+lock = threading.Lock()
+
+def dododo():
+    while True:
+        lock.acquire()
+        print(server_fs.getinfo('222.txt'))
+        lock.release()
+        # for walk_path in server_fs.walk.files("/", max_depth = 1):
+        #     print(walk_path)
+
+for i in range(0,2):
+    threading.Thread(
+        target = dododo,
+        daemon = True
+    ).start()
+    print(f"#{i} thread start")
+
+while(True):
+    a = input("\n\nServer start ! enter q for exit \n======>\n")
+    if(a == "stop"):
+        exit()
+    if(a == "q"):
+        break
