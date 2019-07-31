@@ -3,38 +3,31 @@ from my_lib.Config_controller.Config_controller import Config_controller as Conf
 import time
 import threading
 import random
+from file_io_emulation.Smb_client import Smb_client
 
 conf = ConfC('setting.ini')
 conf.cd('smb')
 
+smbc = Smb_client()
 
-lock = threading.Lock()
 
 def dododo():
-    smb_fs = smbfs.SMBFS(
-        conf.get('ip'),
-        username = conf.get('username'),
-        passwd = conf.get('passwd'),
-        timeout = 5,
-        port = int(conf.get('port')),
-        direct_tcp = int(conf.get('direct_tcp'))
-    )
-    server_fs = smb_fs.opendir(conf.get('enter_path'))
+    
     while True:
         time.sleep(1)
         # lock.acquire()
-        print(f"{threading.currentThread().ident}: {server_fs.getinfo('222.txt')}")
+        print(f"{threading.currentThread().ident}: {smbc.get_fs().getinfo('222.txt')}")
         # lock.release()
         # for walk_path in server_fs.walk.files("/", max_depth = 1):
         #     print(walk_path)
 
-for i in range(0,5):
+for i in range(0,4):
     threading.Thread(
         target = dododo,
         daemon = True
     ).start()
     print(f"#{i} thread start")
-    time.sleep(5)
+    # time.sleep(5)
 
 while(True):
     a = input("\n\nServer start ! enter q for exit \n======>\n")
