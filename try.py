@@ -14,19 +14,18 @@ smbc = Smb_client()
 def dododo():
     
     while True:
-        time.sleep(1)
-        # lock.acquire()
-        print(f"{threading.currentThread().ident}: {smbc.get_fs().getinfo('222.txt')}")
-        # lock.release()
-        # for walk_path in server_fs.walk.files("/", max_depth = 1):
-        #     print(walk_path)
+        time.sleep(random.random())
+        def mycallback(myfs: smbfs.SMBFS):
+            print(myfs.getinfo("a.txt"))
+        smbc.get_fs(mycallback)
 
 for i in range(0,4):
-    threading.Thread(
+    t = threading.Thread(
         target = dododo,
         daemon = True
-    ).start()
-    print(f"#{i} thread start")
+    )
+    t.start()
+    print(f"#{t.ident} thread start")
     # time.sleep(5)
 
 while(True):

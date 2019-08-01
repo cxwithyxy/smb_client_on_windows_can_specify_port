@@ -2,22 +2,38 @@ import threading
 from my_lib.Config_controller.Config_controller import Config_controller as ConfC
 from fs.smbfs import smbfs
 
+class Smbfs_controller:
+    
+    is_using: bool = False
+    smb_fs: smbfs.SMBFS
+
+    def __init__(self, smb_fs: smbfs.SMBFS):
+        self.smb_fs = smb_fs
+
+    def get_smb_fs(self):
+        return self.smb_fs
+
+    def using(self):
+        self.is_using = True
+
+    def release(self):
+        self.is_using = False
+
 class Smb_client:
 
-    smb_fss = {}
+    smb_fs_count = 1
+    smb_fss = []
     conf: ConfC
     thread_lock: threading.RLock
     
     def __init__(self):
-        self.thread_lock = threading.Lock()
+        self.thread_lock = threading.RLock()
         self.conf = ConfC('setting.ini')
         self.conf.cd('smb')
+        for i in range(0, self.smb_fs_count):
+            self.create_smb_fs()
 
-    def get_thread_id(self):
-        return threading.currentThread().ident
-
-    def create_smb_fs(self, thread_id: int):
-        self.thread_lock.acquire()
+    def create_smb_fs(self):
         smb_fs = smbfs.SMBFS(
             self.conf.get('ip'),
             username = self.conf.get('username'),
@@ -27,13 +43,31 @@ class Smb_client:
             direct_tcp = int(self.conf.get('direct_tcp'))
         )
         smb_fs = smb_fs.opendir(self.conf.get('enter_path'))
-        self.smb_fss[str(thread_id)] = smb_fs
-        print(f"T#{thread_id}")
+        self.smb_fss.append(Smbfs_controller(smb_fs))
+    
+    def get_free_fs(self) -> Smbfs_controller:
+        re_val = False
+        for i in self.smb_fss:
+            if not i.is_using:
+                re_val = i
+                break
+        return re_val
+    
+    def wait_until_free_fs(self) -> Smbfs_controller:
+        free_fs = [None]
+        while True:
+            free_fs[0] = self.get_free_fs()
+            if free_fs[0]:
+                break
+        return free_fs[0]
+
+    def get_fs(self, callback):
+        self.thread_lock.acquire()
+        free_fs = self.wait_until_free_fs()
+        free_fs.using()
         self.thread_lock.release()
-        
-    def get_fs(self):
-        try:
-            return self.smb_fss[str(self.get_thread_id())]
-        except KeyError as e:
-            self.create_smb_fs(self.get_thread_id())
-            return self.get_fs()
+        # print(f"{threading.currentThread().ident}: get {id(free_fs)}")
+        callback(free_fs.get_smb_fs())
+        # self.thread_lock.acquire()
+        free_fs.release()
+        # self.thread_lock.release()
