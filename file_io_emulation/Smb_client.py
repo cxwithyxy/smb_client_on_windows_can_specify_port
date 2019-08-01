@@ -30,6 +30,7 @@ class Smb_client:
         self.thread_lock = threading.RLock()
         self.conf = ConfC('setting.ini')
         self.conf.cd('smb')
+        self.smb_fs_count = int(self.conf.get("connection_count"))
         for i in range(0, self.smb_fs_count):
             self.create_smb_fs()
 

@@ -6,6 +6,7 @@ port = 139
 direct_tcp = 0
 enter_path = /
 thread = 2
+connection_count = 2
 [disk]
 mount_point = k
 volume_name = 一个smb硬盘
