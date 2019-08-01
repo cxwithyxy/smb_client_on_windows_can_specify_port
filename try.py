@@ -11,22 +11,39 @@ conf.cd('smb')
 smbc = Smb_client()
 
 
-def dododo():
+def dododo(aaa):
     
     while True:
         time.sleep(random.random())
         def mycallback(myfs: smbfs.SMBFS):
             print(myfs.getinfo("a.txt"))
         smbc.get_fs(mycallback)
+        dddd=9
+        twowowo = None
+        def mycallback2(myfs: smbfs.SMBFS):
+            nonlocal twowowo
+            twowowo = (myfs.getinfo("222.txt"))
+            print(dddd)
+        smbc.get_fs(mycallback2)
+        print(twowowo)
 
-for i in range(0,4):
+def sub_do():
+    for i in range(0, 2):
+        t = threading.Thread(
+            target = dododo,
+            args = (3,),
+            daemon = True
+        )
+        t.start()
+        print(f"#{t.ident} subthread start from{threading.currentThread().ident}")
+
+for i in range(0, 4):
     t = threading.Thread(
-        target = dododo,
+        target = sub_do,
         daemon = True
     )
     t.start()
     print(f"#{t.ident} thread start")
-    # time.sleep(5)
 
 while(True):
     a = input("\n\nServer start ! enter q for exit \n======>\n")

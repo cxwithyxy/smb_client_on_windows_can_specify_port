@@ -19,12 +19,11 @@ class Server(SLT):
     volume_name = ""
     mount_point = ""
     thread_count = 1
-    server_fs = None
+    server_fs: Smb_client
     conf: ConfC
-    thread_lock: threading.RLock
 
-    def get_fs(self):
-        return self.server_fs.get_fs()
+    def get_fs(self, callback):
+        self.server_fs.get_fs(callback)
 
     def init_files_tree(self):
         self.server_fs = Smb_client()
@@ -65,8 +64,6 @@ class Server(SLT):
     def __Singleton_Init__(self):
         self.conf_init()
         
-        self.thread_lock = threading.RLock()
-        
         dokan_controller().set_options(self.mount_point, self.thread_count)
         dokan_controller().set_operations({
             "ZwCreateFile": self.ZwCreateFile_handle,
@@ -86,71 +83,91 @@ class Server(SLT):
             "SetAllocationSize": self.SetAllocationSize_handle
         })
         self.init_files_tree()
-    
-    def operations_wrapper(func):
-        def wrapper(self, *argus):
-            self.thread_lock.acquire()
-            return_value = func(self, *argus)
-            self.thread_lock.release()
-            return return_value
-        return wrapper
 
-    @operations_wrapper
     def SetAllocationSize_handle(self, *argus):
         # print("\n===== SetAllocationSize_handle =====\n")
         return ntstatus.STATUS_SUCCESS
 
-    @operations_wrapper
     def FlushFileBuffers_handle(self, *argus):
         # print("\n===== FlushFileBuffers_handle =====\n")
         return ntstatus.STATUS_SUCCESS
 
-    @operations_wrapper
+    def path_is_exists(self, path: str):
+        is_exists = None
+        def callback(smb_fs: smbfs.SMBFS):
+            nonlocal is_exists
+            is_exists = smb_fs.exists(path)
+        self.get_fs(callback)
+        return is_exists
+
+    def path_is_file(self, path: str):
+        is_file = None
+        def callback(smb_fs: smbfs.SMBFS):
+            nonlocal is_file
+            is_file = smb_fs.isfile(path)
+        self.get_fs(callback)
+        return is_file
+
+    def path_is_empty(self, path: str):
+        isempty = None
+        def callback(smb_fs: smbfs.SMBFS):
+            nonlocal isempty
+            isempty = smb_fs.isempty(path)
+        self.get_fs(callback)
+        return isempty
+
     def DeleteFile_handle(self, *argus):
         # print("DeleteFile_handle")
         # print(argus[0])
         file_path = self.get_path_from_dokan_path(argus[0])
-        is_file = self.get_fs().isfile(file_path)
+        is_file = self.path_is_file(file_path)
         if(argus[1].contents.DeleteOnClose):
             # print(file_path)
             # print(argus[1].contents.DeleteOnClose)
             if(not is_file):
-                if(not self.get_fs().isempty(file_path)):
+                if(not self.path_is_empty(file_path)):
                     return ntstatus.STATUS_DIRECTORY_NOT_EMPTY
         return ntstatus.STATUS_SUCCESS
 
-    @operations_wrapper
     def MoveFile_handle(self, *argus):
         src_path = self.get_path_from_dokan_path(argus[0])
         dst_path = self.get_path_from_dokan_path(argus[1])
         # print("\n===== MoveFile_handle =====\n")
         # print(f"src_path: {src_path}")
         # print(f"dst_path: {dst_path}")
-        is_exists = self.get_fs().exists(src_path)
-        is_file = self.get_fs().isfile(src_path)
+        is_exists = self.path_is_exists(src_path)
+        is_file = self.path_is_file(src_path)
+
         if(not is_exists):
             return ntstatus.STATUS_OBJECTID_NOT_FOUND
-        if(is_file):
-            self.get_fs().move(src_path, dst_path, argus[2])
-        else:
-            self.get_fs().movedir(src_path, dst_path, True)
+        
+        def callback(smb_fs: smbfs.SMBFS):
+            nonlocal is_file
+            if(is_file):
+                smb_fs.move(src_path, dst_path, argus[2])
+            else:
+                smb_fs.movedir(src_path, dst_path, True)
+        self.get_fs(callback)
+        
         return ntstatus.STATUS_SUCCESS
 
-    @operations_wrapper
     def GetFileSecurity_handle(self, *argus):
         # print("GetFileSecurity_handle")
         # print(argus[0])
         return ntstatus.STATUS_NOT_IMPLEMENTED
 
-    @operations_wrapper
     def GetFileInformation_handle(self, *argus):
         path = self.get_path_from_dokan_path(argus[0])
         # print("GetFileInformation_handle")
         # print(path)
-        if(not self.get_fs().exists(path)):
+        if(not self.path_is_exists(path)):
             return ntstatus.STATUS_SUCCESS
-        filesize = self.get_fs().getsize(path)
-        if(self.get_fs().isfile(path)):
+        filesize = None
+        def callback(smb_fs: smbfs.SMBFS):
+            nonlocal filesize
+            filesize = smb_fs.getsize(path)
+        self.get_fs(callback)
+        if(self.path_is_file(path)):
             argus[1].contents.dwFileAttributes = wintypes.DWORD(32)
         else:
             argus[2].contents.IsDirectory = c_ubyte(True)
@@ -162,40 +179,41 @@ class Server(SLT):
         argus[1].contents.nFileSizeLow = wintypes.DWORD(filesize)
         return ntstatus.STATUS_SUCCESS
 
-    @operations_wrapper
     def FindFiles_handle(self, *argus):
         path = self.get_path_from_dokan_path(argus[0])
         # print("\n===== FindFiles_handle =====\n")
         # print("FindFilesWithPattern: " + path)
-        if(not self.get_fs().exists(path)):
+        if(not self.path_is_exists(path)):
             return ntstatus.STATUS_OBJECTID_NOT_FOUND
-        for walk_path in self.get_fs().walk.dirs(path, max_depth = 1):
-            if(self.get_fs().exists(walk_path)):
-                info = self.get_fs().getinfo(walk_path)
-                find_data = wintypes.WIN32_FIND_DATAW()
-                find_data.dwFileAttributes = 16
-                find_data.cFileName = info.name
-                argus[1](pointer(find_data), argus[2])
-        for walk_path in self.get_fs().walk.files(path, max_depth = 1):
-            if(self.get_fs().exists(walk_path)):
-                info = self.get_fs().getinfo(walk_path)
-                filesize = self.get_fs().getsize(walk_path)
-                find_data = wintypes.WIN32_FIND_DATAW()
-                find_data.dwFileAttributes = 32
-                find_data.cFileName = info.name
-                if(len(info.name) >= 11):
-                    info_cut = info.name.split(".")
-                    cAlternateFileName = info_cut[0][0:6] + "~1." + info.suffix[0:3]
-                else:
-                    find_data.cAlternateFileName = info.name
-                find_data.ftCreationTime = wintypes.FILETIME()
-                find_data.ftLastAccessTime = wintypes.FILETIME()
-                find_data.ftLastWriteTime = wintypes.FILETIME()
-                find_data.nFileSizeHigh = wintypes.DWORD(0)
-                find_data.nFileSizeLow = wintypes.DWORD(filesize)
-                find_data.dwReserved0 = wintypes.DWORD(0)
-                find_data.dwReserved1 = wintypes.DWORD(0)
-                argus[1](pointer(find_data), argus[2])
+        def callback(smb_fs: smbfs.SMBFS):
+            for walk_path in smb_fs.walk.dirs(path, max_depth = 1):
+                if(smb_fs.exists(walk_path)):
+                    info = smb_fs.getinfo(walk_path)
+                    find_data = wintypes.WIN32_FIND_DATAW()
+                    find_data.dwFileAttributes = 16
+                    find_data.cFileName = info.name
+                    argus[1](pointer(find_data), argus[2])
+            for walk_path in smb_fs.walk.files(path, max_depth = 1):
+                if(smb_fs.exists(walk_path)):
+                    info = smb_fs.getinfo(walk_path)
+                    filesize = smb_fs.getsize(walk_path)
+                    find_data = wintypes.WIN32_FIND_DATAW()
+                    find_data.dwFileAttributes = 32
+                    find_data.cFileName = info.name
+                    if(len(info.name) >= 11):
+                        info_cut = info.name.split(".")
+                        cAlternateFileName = info_cut[0][0:6] + "~1." + info.suffix[0:3]
+                    else:
+                        find_data.cAlternateFileName = info.name
+                    find_data.ftCreationTime = wintypes.FILETIME()
+                    find_data.ftLastAccessTime = wintypes.FILETIME()
+                    find_data.ftLastWriteTime = wintypes.FILETIME()
+                    find_data.nFileSizeHigh = wintypes.DWORD(0)
+                    find_data.nFileSizeLow = wintypes.DWORD(filesize)
+                    find_data.dwReserved0 = wintypes.DWORD(0)
+                    find_data.dwReserved1 = wintypes.DWORD(0)
+                    argus[1](pointer(find_data), argus[2])
+        self.get_fs(callback)
         return ntstatus.STATUS_SUCCESS
 
     def get_path_from_dokan_path(self, dokan_path):
@@ -203,7 +221,6 @@ class Server(SLT):
         path = path.replace("\\", "/")
         return path
     
-    @operations_wrapper
     def ZwCreateFile_handle(self, *argus):
         '''
         https://docs.microsoft.com/zh-cn/windows/win32/api/winternl/nf-winternl-ntcreatefile
@@ -235,8 +252,8 @@ class Server(SLT):
         t_CreationDisposition = outCreationDisposition.value
 
         path = self.get_path_from_dokan_path(FileName)
-        is_file = self.get_fs().isfile(path)
-        check_is_exists = currying(self.get_fs().exists, path)
+        is_file = self.path_is_file(path)
+        check_is_exists = currying(self.path_is_exists, path)
 
         def print_out():
             print(f"\n{time.strftime('%H:%M:%S', time.localtime())}===== ZwCreateFile_handle =====\n")
@@ -269,11 +286,15 @@ class Server(SLT):
             if(CreateOptions & fileinfo.FILE_DIRECTORY_FILE):
                 if(check_is_exists()):
                     return ntstatus.STATUS_OBJECT_NAME_COLLISION
-                self.get_fs().makedir(path)
+                def callback(smb_fs: smbfs.SMBFS):
+                    smb_fs.makedir(path)
+                self.get_fs(callback)
             if(CreateOptions & fileinfo.FILE_NON_DIRECTORY_FILE):
                 if(check_is_exists()):
                     return ntstatus.STATUS_OBJECT_NAME_COLLISION
-                self.get_fs().create(path)
+                def callback2(smb_fs: smbfs.SMBFS):
+                    smb_fs.create(path)
+                self.get_fs(callback2)
             
             return ntstatus.STATUS_SUCCESS
         if(t_CreationDisposition == fileinfo.CREATE_ALWAYS):
@@ -281,27 +302,28 @@ class Server(SLT):
         if(t_CreationDisposition == fileinfo.TRUNCATE_EXISTING):
             return ntstatus.STATUS_SUCCESS
     
-    @operations_wrapper
     def Cleanup_handle(self, *argus):
         file_path = self.get_path_from_dokan_path(argus[0])
-        is_file = self.get_fs().isfile(file_path)
+        is_file = self.path_is_file(file_path)
         if(argus[1].contents.DeleteOnClose):
             # print(file_path)
             # print(argus[1].contents.DeleteOnClose)
             if(is_file):
-                self.get_fs().remove(file_path)
+                def callback(smb_fs: smbfs.SMBFS):
+                    smb_fs.remove(file_path)
+                self.get_fs(callback)
             else:
-                if(not self.get_fs().isempty(file_path)):
+                if(not self.path_is_empty(file_path)):
                     return ntstatus.STATUS_DIRECTORY_NOT_EMPTY
-                self.get_fs().removedir(file_path)
+                def callback2(smb_fs: smbfs.SMBFS):
+                    smb_fs.removedir(file_path)
+                self.get_fs(callback2)
         return ntstatus.STATUS_SUCCESS
 
-    @operations_wrapper
     def CloseFile_handle(self, *argus):
         # print("CloseFile_handle")
         return ntstatus.STATUS_SUCCESS
 
-    @operations_wrapper
     def GetDiskFreeSpace_handle(self, *argus):
         # print("GetDiskFreeSpace_handle")
         free = 20 * 1024 * 1024 * 1024
@@ -311,14 +333,12 @@ class Server(SLT):
         argus[2][0] = c_ulonglong(free)
         return ntstatus.STATUS_SUCCESS
 
-    @operations_wrapper
     def GetVolumeInformation_handle(self, *argus):
         # print("GetVolumeInformation_handle")
         sss = wintypes.LPWSTR(self.volume_name)
         memmove(argus[0], sss, len(sss.value) * 2)
         return ntstatus.STATUS_SUCCESS
 
-    @operations_wrapper
     def ReadFile_handle(self, *argus):
         file_path = self.get_path_from_dokan_path(argus[0])
         buffer = argus[1].contents
@@ -328,13 +348,23 @@ class Server(SLT):
         # print(F'file_path: {file_path}')
         # print(F'buffer_len: {buffer_len}')
         # print(F'offset: {offset}')
-        if(self.get_fs().exists(file_path)):
-            filesize = self.get_fs().getsize(file_path)
+        if(self.path_is_exists(file_path)):
+            filesize = None
+            def callback(smb_fs: smbfs.SMBFS):
+                nonlocal filesize
+                smb_fs.getsize(file_path)
+            self.get_fs(callback)
             # if(offset >= filesize):
             #     return ntstatus.STATUS_SUCCESS
-            f = self.get_fs().open(file_path, "rb")
-            f.seek(offset, 0)
-            read_out = f.read(buffer_len)
+            read_out = None
+            def callback2(smb_fs: smbfs.SMBFS):
+                nonlocal read_out
+                f = smb_fs.open(file_path, "rb")
+                f.seek(offset, 0)
+                read_out = f.read(buffer_len)
+                f.close()
+            self.get_fs(callback2)
+            
             read_out_len = len(read_out)
             # print(F"readout: {read_out}")
             # print(F"readoutlen: {read_out_len}")
@@ -347,7 +377,6 @@ class Server(SLT):
             memmove(read_len_buffer, pointer(c_ulong(read_out_len)), sizeof(c_ulong))
         return ntstatus.STATUS_SUCCESS
 
-    @operations_wrapper
     def WriteFile_handle(self, *argus):
         file_path = self.get_path_from_dokan_path(argus[0])
         buffer_len = argus[2]
@@ -364,10 +393,16 @@ class Server(SLT):
         # print(other_bytes)
         byte_for_write = other_bytes
         WriteToEndOfFile = DokanFileInfo.WriteToEndOfFile
-        f = self.get_fs().open(file_path, "ab")
-        f.seek(offset, 0)
-        write_len = f.write(byte_for_write)
-        f.close()
+        
+        write_len = None
+        def callback(smb_fs: smbfs.SMBFS):
+            nonlocal write_len
+            f = smb_fs.open(file_path, "ab")
+            f.seek(offset, 0)
+            write_len = f.write(byte_for_write)
+            f.close()
+        self.get_fs(callback)
+        
         memmove(write_len_buffer, pointer(c_ulong(write_len)), sizeof(c_ulong))
         # if(WriteToEndOfFile):
         #     print(f'file_path: {file_path}')

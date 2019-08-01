@@ -16,7 +16,7 @@ class Smbfs_controller:
     def using(self):
         self.is_using = True
 
-    def release(self):
+    def un_using(self):
         self.is_using = False
 
 class Smb_client:
@@ -65,9 +65,7 @@ class Smb_client:
         self.thread_lock.acquire()
         free_fs = self.wait_until_free_fs()
         free_fs.using()
-        self.thread_lock.release()
         # print(f"{threading.currentThread().ident}: get {id(free_fs)}")
+        self.thread_lock.release()
         callback(free_fs.get_smb_fs())
-        # self.thread_lock.acquire()
-        free_fs.release()
-        # self.thread_lock.release()
+        free_fs.un_using()
