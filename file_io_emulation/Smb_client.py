@@ -26,10 +26,10 @@ class Smb_client:
         smb_fs = smb_fs.opendir(self.conf.get('enter_path'))
         self.smb_fss[str(thread_id)] = smb_fs
         print(f"T#{thread_id}")
+        return smb_fs
         
     def get_fs(self):
         try:
             return self.smb_fss[str(self.get_thread_id())]
         except KeyError as e:
-            self.create_smb_fs(self.get_thread_id())
-            return self.get_fs()
+            return self.create_smb_fs(self.get_thread_id())
