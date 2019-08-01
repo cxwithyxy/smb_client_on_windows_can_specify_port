@@ -12,7 +12,7 @@ a SMB client can be specify port on Windows
 已知问题:
 
 1. 新建的xlsx文档打开提示文件有损坏(或错误)
-2. 速度很慢，应该是单一线程的导致的问题
+2. 速度很慢，应该是没有缓存而导致的问题
 
 
 
@@ -32,6 +32,24 @@ a SMB client can be specify port on Windows
 5. 用支持utf8文本编码格式的编辑器编辑 setting.ini 文件
 6. 修改 setting.ini 文件中的 ip、username、passwd，对应为smb服务器ip地址，smb账号、密码
 7. 运行 smb_client.exe
+
+#### setting.ini 配置说明
+
+| smb项            | 说明                     |
+| ---------------- | ------------------------ |
+| ip               | ip地址                   |
+| username         | smb用户名                |
+| passwd           | 密码                     |
+| port             | 端口                     |
+| direct_tcp       | 0为默认连接, 1为直接连接 |
+| enter_path       | 共享文件夹名字           |
+| thread           | 线程数                   |
+| connection_count | 连接数                   |
+
+| disk项      | 说明     |
+| ----------- | -------- |
+| mount_point | 挂载盘符 |
+| volume_name | 盘的名字 |
 
 
 
