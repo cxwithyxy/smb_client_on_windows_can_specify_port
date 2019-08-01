@@ -19,12 +19,17 @@ class Server(SLT):
     volume_name = ""
     mount_point = ""
     thread_count = 1
-    server_fs = None
+    server_fs: Smb_client
     conf: ConfC
     thread_lock: threading.RLock
+    current_thread: threading.Thread
 
     def get_fs(self):
-        return self.server_fs.get_fs()
+        # self.thread_lock.acquire()
+        print(f"{self.current_thread.ident} in {threading.currentThread().ident} with {self.server_fs.print_len()}")
+        return_val = self.server_fs.get_fs(self.current_thread.ident)
+        # self.thread_lock.release()
+        return return_val
 
     def init_files_tree(self):
         self.server_fs = Smb_client()
@@ -89,10 +94,22 @@ class Server(SLT):
     
     def operations_wrapper(func):
         def wrapper(self, *argus):
-            self.thread_lock.acquire()
-            return_value = func(self, *argus)
-            self.thread_lock.release()
-            return return_value
+            # self.thread_lock.acquire()
+            self.current_thread = threading.currentThread()
+            print(f"{self.current_thread.ident} start")
+            return_value = [None]
+            def dodo():
+                return_value[0] = func(self, *argus)
+            t = threading.Thread(
+                target = dodo,
+                daemon = True
+            )
+            t.start()
+            # self.thread_lock.release()
+            t.join()
+            # print(return_value[0])
+            print(f"{self.current_thread.ident} end")
+            return return_value[0]
         return wrapper
 
     @operations_wrapper
