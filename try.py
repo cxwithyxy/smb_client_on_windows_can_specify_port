@@ -3,35 +3,47 @@ from my_lib.Config_controller.Config_controller import Config_controller as Conf
 import time
 import threading
 import random
+from file_io_emulation.Smb_client import Smb_client
 
 conf = ConfC('setting.ini')
 conf.cd('smb')
-smb_fs = smbfs.SMBFS(
-    conf.get('ip'),
-    username = conf.get('username'),
-    passwd = conf.get('passwd'),
-    timeout = 5,
-    port = int(conf.get('port')),
-    direct_tcp = int(conf.get('direct_tcp'))
-)
-server_fs = smb_fs.opendir(conf.get('enter_path'))
 
-lock = threading.Lock()
+smbc = Smb_client()
 
-def dododo():
+
+def dododo(aaa):
+    
     while True:
-        lock.acquire()
-        print(server_fs.getinfo('222.txt'))
-        lock.release()
-        # for walk_path in server_fs.walk.files("/", max_depth = 1):
-        #     print(walk_path)
+        time.sleep(random.random())
+        def mycallback(myfs: smbfs.SMBFS):
+            print(myfs.getinfo("a.txt"))
+        smbc.get_fs(mycallback)
+        dddd=9
+        twowowo = None
+        def mycallback2(myfs: smbfs.SMBFS):
+            nonlocal twowowo
+            twowowo = (myfs.getinfo("222.txt"))
+            print(dddd)
+        smbc.get_fs(mycallback2)
+        print(twowowo)
 
-for i in range(0,2):
-    threading.Thread(
-        target = dododo,
+def sub_do():
+    for i in range(0, 2):
+        t = threading.Thread(
+            target = dododo,
+            args = (3,),
+            daemon = True
+        )
+        t.start()
+        print(f"#{t.ident} subthread start from{threading.currentThread().ident}")
+
+for i in range(0, 4):
+    t = threading.Thread(
+        target = sub_do,
         daemon = True
-    ).start()
-    print(f"#{i} thread start")
+    )
+    t.start()
+    print(f"#{t.ident} thread start")
 
 while(True):
     a = input("\n\nServer start ! enter q for exit \n======>\n")

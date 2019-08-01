@@ -22,7 +22,7 @@ class Controller(SLT):
         """
         self.dokan_operations = dokan_structure.Builder().build_DOKAN_OPERATIONS(callback_dict)
 
-    def set_options(self, mount_point):
+    def set_options(self, mount_point: str, thread: int = 1):
         """设置dokan配置
 
         Args:
@@ -30,6 +30,7 @@ class Controller(SLT):
             mount_point: 挂载点, 如k, 代表挂载成k盘
         """
         self.dokan_options = dokan_structure.Builder().build_DOKAN_OPTIONS()
+        self.dokan_options.ThreadCount = wintypes.USHORT(thread)
         self.dokan_options.MountPoint = wintypes.LPCWSTR(mount_point)
 
     def dokan_start(self):
