@@ -6,10 +6,8 @@ class Smb_client:
 
     smb_fss = {}
     conf: ConfC
-    thread_lock: threading.RLock
     
     def __init__(self):
-        self.thread_lock = threading.Lock()
         self.conf = ConfC('setting.ini')
         self.conf.cd('smb')
 
@@ -17,7 +15,6 @@ class Smb_client:
         return threading.currentThread().ident
 
     def create_smb_fs(self, thread_id: int):
-        self.thread_lock.acquire()
         smb_fs = smbfs.SMBFS(
             self.conf.get('ip'),
             username = self.conf.get('username'),
@@ -29,7 +26,6 @@ class Smb_client:
         smb_fs = smb_fs.opendir(self.conf.get('enter_path'))
         self.smb_fss[str(thread_id)] = smb_fs
         print(f"T#{thread_id}")
-        self.thread_lock.release()
         
     def get_fs(self):
         try:
