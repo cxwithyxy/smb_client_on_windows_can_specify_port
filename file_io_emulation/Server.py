@@ -27,17 +27,6 @@ class Server(SLT):
 
     def init_files_tree(self):
         self.server_fs = Smb_client()
-        # conf = self.conf
-        # conf.cd('smb')
-        # smb_fs = smbfs.SMBFS(
-        #     conf.get('ip'),
-        #     username = conf.get('username'),
-        #     passwd = conf.get('passwd'),
-        #     timeout = 5,
-        #     port = int(conf.get('port')),
-        #     direct_tcp = int(conf.get('direct_tcp'))
-        # )
-        # self.server_fs = smb_fs.opendir(conf.get('enter_path'))
 
         # self.server_fs = MemoryFS()
         # self.get_fs().writetext('aaaattttttasdaa.txt','i am a')
@@ -52,6 +41,21 @@ class Server(SLT):
         # self.get_fs().writetext('cxcxcx/bbbb.txt',bbbb)
         # self.get_fs().makedir("qqq")
         # self.get_fs().writetext('qqq/qqq.txt','qqq')
+
+    def operations_wrapper(func):
+        def wrapper(self, *argus):
+            return_value = None
+            def dodo():
+                nonlocal return_value
+                return_value = func(self, *argus)
+            t = threading.Thread(
+                target = dodo,
+                daemon = True
+            )
+            t.start()
+            t.join()
+            return return_value
+        return wrapper
 
     def conf_init(self):
         self.conf = ConfC('setting.ini')
@@ -116,6 +120,7 @@ class Server(SLT):
         self.get_fs(callback)
         return isempty
 
+    @operations_wrapper
     def DeleteFile_handle(self, *argus):
         # print("DeleteFile_handle")
         # print(argus[0])
@@ -129,6 +134,7 @@ class Server(SLT):
                     return ntstatus.STATUS_DIRECTORY_NOT_EMPTY
         return ntstatus.STATUS_SUCCESS
 
+    @operations_wrapper
     def MoveFile_handle(self, *argus):
         src_path = self.get_path_from_dokan_path(argus[0])
         dst_path = self.get_path_from_dokan_path(argus[1])
@@ -156,6 +162,7 @@ class Server(SLT):
         # print(argus[0])
         return ntstatus.STATUS_NOT_IMPLEMENTED
 
+    @operations_wrapper
     def GetFileInformation_handle(self, *argus):
         path = self.get_path_from_dokan_path(argus[0])
         # print("GetFileInformation_handle")
@@ -179,6 +186,7 @@ class Server(SLT):
         argus[1].contents.nFileSizeLow = wintypes.DWORD(filesize)
         return ntstatus.STATUS_SUCCESS
 
+    @operations_wrapper
     def FindFiles_handle(self, *argus):
         path = self.get_path_from_dokan_path(argus[0])
         # print("\n===== FindFiles_handle =====\n")
@@ -221,6 +229,7 @@ class Server(SLT):
         path = path.replace("\\", "/")
         return path
     
+    @operations_wrapper
     def ZwCreateFile_handle(self, *argus):
         '''
         https://docs.microsoft.com/zh-cn/windows/win32/api/winternl/nf-winternl-ntcreatefile
@@ -302,6 +311,7 @@ class Server(SLT):
         if(t_CreationDisposition == fileinfo.TRUNCATE_EXISTING):
             return ntstatus.STATUS_SUCCESS
     
+    @operations_wrapper
     def Cleanup_handle(self, *argus):
         file_path = self.get_path_from_dokan_path(argus[0])
         is_file = self.path_is_file(file_path)
@@ -339,6 +349,7 @@ class Server(SLT):
         memmove(argus[0], sss, len(sss.value) * 2)
         return ntstatus.STATUS_SUCCESS
 
+    @operations_wrapper
     def ReadFile_handle(self, *argus):
         file_path = self.get_path_from_dokan_path(argus[0])
         buffer = argus[1].contents
@@ -377,6 +388,7 @@ class Server(SLT):
             memmove(read_len_buffer, pointer(c_ulong(read_out_len)), sizeof(c_ulong))
         return ntstatus.STATUS_SUCCESS
 
+    @operations_wrapper
     def WriteFile_handle(self, *argus):
         file_path = self.get_path_from_dokan_path(argus[0])
         buffer_len = argus[2]
