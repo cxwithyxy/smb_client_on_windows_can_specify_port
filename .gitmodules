@@ -1,3 +1,6 @@
 [submodule "PythonSingleton"]
 	path = PythonSingleton
 	url = https://github.com/cxwithyxy/PythonSingleton.git
+[submodule "my_lib/Config_controller"]
+	path = my_lib/Config_controller
+	url = https://github.com/cxwithyxy/Config_controller.git
