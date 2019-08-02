@@ -13,6 +13,7 @@ from my_lib.Config_controller.Config_controller import Config_controller as Conf
 from fs.smbfs import smbfs
 import threading
 from file_io_emulation.Smb_client import Smb_client
+from fs.wrap import WrapCachedDir
 
 class Server(SLT):
 
@@ -20,10 +21,26 @@ class Server(SLT):
     mount_point = ""
     thread_count = 1
     server_fs: Smb_client
+    cache_fs: smbfs.SMBFS = None
     conf: ConfC
+    thread_lock: threading.Lock
 
     def get_fs(self, callback):
-        self.server_fs.get_fs(callback)
+        self.thread_lock.acquire()
+        if not self.cache_fs:
+            def cc(smb_fs:smbfs.SMBFS):
+                self.cache_fs = WrapCachedDir(smb_fs)
+            self.server_fs.get_fs(cc)
+        self.thread_lock.release()
+        try:
+            callback(self.cache_fs)
+        except BaseException as e:
+            while True:
+                try:
+                    self.server_fs.get_fs(callback)
+                    break
+                except BaseException as e:
+                    print("重新连接")
 
     def init_files_tree(self):
         self.server_fs = Smb_client()
@@ -66,6 +83,7 @@ class Server(SLT):
         self.thread_count = int(self.conf.get("thread"))
 
     def __Singleton_Init__(self):
+        self.thread_lock = threading.RLock()
         self.conf_init()
         
         dokan_controller().set_options(self.mount_point, self.thread_count)
