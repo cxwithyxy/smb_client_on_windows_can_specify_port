@@ -25,22 +25,32 @@ class Server(SLT):
     conf: ConfC
     thread_lock: threading.Lock
 
+    def cache_fs_update(self, callback = None):
+        def cc(smb_fs:smbfs.SMBFS):
+            self.cache_fs = WrapCachedDir(smb_fs)
+            if callback:
+                callback(smb_fs)
+        self.server_fs.get_fs(cc)
+
     def get_fs(self, callback):
         self.thread_lock.acquire()
         if not self.cache_fs:
-            def cc(smb_fs:smbfs.SMBFS):
-                self.cache_fs = WrapCachedDir(smb_fs)
-            self.server_fs.get_fs(cc)
+            self.cache_fs_update()
         self.thread_lock.release()
         try:
             callback(self.cache_fs)
         except BaseException as e:
             while True:
                 try:
-                    self.server_fs.get_fs(callback)
+                    self.cache_fs_update(callback)
                     break
                 except BaseException as e:
-                    print("重新连接")
+                    wait_time = 3
+                    print("SMB错误 ======= start")
+                    print(e)
+                    print("SMB错误 ======= end")
+                    print(f"{wait_time} 秒后重新连接")
+                    time.sleep(wait_time)
 
     def init_files_tree(self):
         self.server_fs = Smb_client()
